@@ -139,15 +139,20 @@ const OvertimeMain: React.FC = () => {
 
     try {
       setIsCapturing(true);
+      
+      // Capture current state to avoid race conditions
+      const currentOT = todayOT;
+      const isCurrentlyCheckingOut = !!currentOT && !currentOT.check_out;
+
       const [address, photoId, otPolicy] = await Promise.all([
         presenceService.getReverseGeocode(coords.lat, coords.lng),
-        googleDriveService.uploadFile(new File([photoBlob], `OT_${isCheckOut ? 'OUT' : 'IN'}_${Date.now()}.jpg`)),
+        googleDriveService.uploadFile(new File([photoBlob], `OT_${isCurrentlyCheckingOut ? 'OUT' : 'IN'}_${Date.now()}.jpg`)),
         settingsService.getSetting('ot_approval_policy', 'manual')
       ]);
 
       const currentTimeStr = serverTime.toISOString();
       
-      if (!isCheckOut) {
+      if (!isCurrentlyCheckingOut) {
         await overtimeService.checkIn({
           account_id: account.id,
           check_in: currentTimeStr,
@@ -158,7 +163,11 @@ const OvertimeMain: React.FC = () => {
           reason: otReason
         });
       } else {
-        const start = new Date(todayOT.check_in!);
+        if (!currentOT?.id) {
+          throw new Error("ID referensi lembur tidak ditemukan. Harap muat ulang halaman.");
+        }
+
+        const start = new Date(currentOT.check_in!);
         const diffMs = serverTime.getTime() - start.getTime();
         const diffMins = Math.max(0, Math.floor(diffMs / 60000));
         
@@ -167,7 +176,7 @@ const OvertimeMain: React.FC = () => {
         const s = Math.floor((diffMs % 60000) / 1000);
         const durationFormatted = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-        const updatedOT = await overtimeService.checkOut(todayOT.id, {
+        await overtimeService.checkOut(currentOT.id, {
           check_out: currentTimeStr,
           out_latitude: coords.lat,
           out_longitude: coords.lng,
@@ -183,14 +192,14 @@ const OvertimeMain: React.FC = () => {
           await submissionService.create({
             account_id: account.id,
             type: 'Lembur',
-            description: `Lembur pada ${new Date(todayOT.check_in!).toLocaleDateString('id-ID')}. Kegiatan: ${otReason}`,
+            description: `Lembur pada ${new Date(currentOT.check_in!).toLocaleDateString('id-ID')}. Kegiatan: ${otReason}`,
             file_id: photoId,
             submission_data: {
-              overtime_id: todayOT.id,
-              date: todayOT.check_in!.split('T')[0],
+              overtime_id: currentOT.id,
+              date: currentOT.check_in!.split('T')[0],
               duration: durationFormatted,
               minutes: diffMins,
-              check_in: todayOT.check_in,
+              check_in: currentOT.check_in,
               check_out: currentTimeStr
             }
           });
@@ -200,16 +209,22 @@ const OvertimeMain: React.FC = () => {
       setIsCameraActive(false); 
       
       let successMsg = `Presensi Lembur dicatat.`;
-      if (isCheckOut && otPolicy === 'manual') {
+      if (isCurrentlyCheckingOut && otPolicy === 'manual') {
         successMsg = `Presensi Lembur tersimpan. Pengajuan verifikasi telah dikirim ke Admin.`;
-      } else if (isCheckOut && otPolicy === 'auto') {
+      } else if (isCurrentlyCheckingOut && otPolicy === 'auto') {
         successMsg = `Presensi Lembur tersimpan dan disetujui otomatis oleh sistem.`;
       }
 
       Swal.fire({ title: 'Berhasil!', text: successMsg, icon: 'success', timer: 3000, showConfirmButton: false });
       await fetchInitialData();
-    } catch (error) {
-      Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
+    } catch (error: any) {
+      console.error("Overtime Process Error:", error);
+      Swal.fire({
+        title: 'Gagal',
+        text: error.message || 'Terjadi kesalahan sistem saat memproses lembur.',
+        icon: 'error',
+        confirmButtonColor: '#d97706'
+      });
     } finally {
       setIsCapturing(false);
     }

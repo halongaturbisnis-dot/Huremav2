@@ -41,6 +41,7 @@ export const overtimeService = {
   },
 
   async checkOut(id: string, input: Partial<OvertimeInput>) {
+    if (!id) throw new Error("ID lembur tidak valid untuk proses check-out.");
     const sanitized = sanitizePayload(input);
     const { data, error } = await supabase
       .from('overtimes')
