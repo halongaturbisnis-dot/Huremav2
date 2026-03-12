@@ -17,7 +17,6 @@ import {
 } from '../types';
 import { eachDayOfInterval, parseISO, format, isWithinInterval } from 'date-fns';
 
-
 export const reportService = {
   async getAttendanceReport(startDate: string, endDate: string) {
     const [
