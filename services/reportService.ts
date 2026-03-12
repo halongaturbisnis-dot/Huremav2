@@ -206,10 +206,9 @@ export const reportService = {
         .lte('transaction_date', endDate),
       supabase
         .from('account_compensation_logs')
-        .select('*, account:accounts(full_name, internal_nik)')
+        .select('*, account:accounts!account_compensation_logs_account_id_fkey(full_name, internal_nik)')
         .gte('termination_date', startDate)
-        .lte('termination_date', endDate)
-        .eq('status', 'Completed'),
+        .lte('termination_date', endDate),
       this.getOvertimeReport(startDate, endDate)
     ]);
 
