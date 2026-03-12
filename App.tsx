@@ -2,6 +2,8 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { X, LayoutDashboard, Users, MapPin, CalendarClock, Files, Settings, Database, Fingerprint, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, BarChart3, Wallet } from 'lucide-react';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
+import MobileLayout from './components/Layout/MobileLayout';
+import MobileDashboard from './modules/home/MobileDashboard';
 
 // Lazy load modules for performance optimization
 const LocationMain = lazy(() => import('./modules/location/LocationMain'));
@@ -44,10 +46,19 @@ import { AuthUser } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report'>('presence');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report'>(
+    (window.innerWidth < 768 && authService.getCurrentUser()?.role !== 'admin') ? 'dashboard' : 'presence'
+  );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const refreshUserPermissions = async () => {
@@ -116,6 +127,92 @@ const App: React.FC = () => {
       <span className="font-medium text-sm">{label}</span>
     </button>
   );
+
+  // Mobile Non-Admin Layout
+  if (isMobile && user.role !== 'admin') {
+    return (
+      <MobileLayout activeTab={activeTab} setActiveTab={setActiveTab} user={user}>
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center h-64">
+            <div className="w-10 h-10 border-4 border-[#006E62] border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Memuat...</p>
+          </div>
+        }>
+          {activeTab === 'dashboard' ? (
+            <MobileDashboard user={user} setActiveTab={setActiveTab} />
+          ) : activeTab === 'location' ? (
+            <LocationMain />
+          ) : activeTab === 'account' ? (
+            <AccountMain />
+          ) : activeTab === 'schedule' ? (
+            <ScheduleMain />
+          ) : activeTab === 'document' ? (
+            <DocumentMain />
+          ) : activeTab === 'presence' ? (
+            <PresenceMain />
+          ) : activeTab === 'overtime' ? (
+            <OvertimeMain />
+          ) : activeTab === 'submission' ? (
+            <SubmissionMain />
+          ) : activeTab === 'leave' ? (
+            <LeaveMain />
+          ) : activeTab === 'annual_leave' ? (
+            <AnnualLeaveMain />
+          ) : activeTab === 'permission' ? (
+            <PermissionMain />
+          ) : activeTab === 'maternity_leave' ? (
+            <MaternityLeaveMain />
+          ) : activeTab === 'kpi' ? (
+            <KPIMain />
+          ) : activeTab === 'key_activity' ? (
+            <KeyActivityMain />
+          ) : activeTab === 'employee_of_the_period' ? (
+            <EmployeeOfThePeriodMain />
+          ) : activeTab === 'sales_report' ? (
+            <SalesReportMain />
+          ) : activeTab === 'feedback' ? (
+            <FeedbackMain />
+          ) : activeTab === 'lapor' ? (
+            <LaporMain />
+          ) : activeTab === 'rapat' ? (
+            <RapatMain />
+          ) : activeTab === 'pengumuman' ? (
+            <PengumumanMain user={user} />
+          ) : activeTab === 'salary_scheme' ? (
+            <SalarySchemeMain />
+          ) : activeTab === 'salary_adjustment' ? (
+            <SalaryAdjustmentMain />
+          ) : activeTab === 'payroll' ? (
+            <PayrollMain />
+          ) : activeTab === 'my_payslip' ? (
+            <MyPayslip />
+          ) : activeTab === 'reimbursement' ? (
+            <ReimbursementMain />
+          ) : activeTab === 'early_salary' ? (
+            <EarlySalaryMain />
+          ) : activeTab === 'compensation' ? (
+            <CompensationMain />
+          ) : activeTab === 'dispensation' ? (
+            <DispensationMain user={user} />
+          ) : activeTab === 'admin_dispensation' ? (
+            <AdminDispensationMain user={user} />
+          ) : activeTab === 'attendance_report' ? (
+            <AttendanceReportMain />
+          ) : activeTab === 'finance_report' ? (
+            <FinanceReportMain />
+          ) : activeTab === 'master_app' ? (
+            <MasterMain />
+          ) : activeTab === 'settings' ? (
+            <AdminSettingsModule />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+              <p className="font-medium text-sm">Modul "{activeTab}" sedang dalam pengembangan.</p>
+            </div>
+          )}
+        </Suspense>
+      </MobileLayout>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-white text-gray-800">
