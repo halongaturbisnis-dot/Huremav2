@@ -201,7 +201,7 @@ export const reportService = {
         .in('payroll.status', ['Approved', 'Paid']),
       supabase
         .from('finance_reimbursements')
-        .select('*, account:accounts(full_name, internal_nik)')
+        .select('*, account:accounts!finance_reimbursements_account_id_fkey(full_name, internal_nik)')
         .gte('transaction_date', startDate)
         .lte('transaction_date', endDate),
       supabase
