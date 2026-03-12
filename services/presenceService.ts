@@ -163,6 +163,7 @@ export const presenceService = {
   },
 
   async checkOut(id: string, input: Partial<AttendanceInput>) {
+    if (!id) throw new Error("ID presensi tidak valid untuk proses check-out.");
     const sanitized = sanitizePayload(input);
     const { data, error } = await supabase
       .from('attendances')

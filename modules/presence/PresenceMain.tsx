@@ -216,16 +216,20 @@ const PresenceMain: React.FC = () => {
     try {
       setIsCapturing(true);
       
+      // Capture current attendance state to avoid race conditions
+      const currentAttendance = todayAttendance;
+      const isCurrentlyCheckingOut = !!currentAttendance && !currentAttendance.check_out;
+
       // Tahap 1: Jalankan geocoding dan upload secara paralel untuk efisiensi
       const [address, photoId] = await Promise.all([
         presenceService.getReverseGeocode(coords.lat, coords.lng),
-        googleDriveService.uploadFile(new File([photoBlob], `Presence_${isCheckOut ? 'OUT' : 'IN'}_${Date.now()}.jpg`))
+        googleDriveService.uploadFile(new File([photoBlob], `Presence_${isCurrentlyCheckingOut ? 'OUT' : 'IN'}_${Date.now()}.jpg`))
       ]);
 
       const currentTimeStr = serverTime.toISOString();
       
       // Tahap 2: Simpan ke database Supabase
-      if (!isCheckOut) {
+      if (!isCurrentlyCheckingOut) {
         const payload: any = {
           account_id: account.id,
           check_in: currentTimeStr,
@@ -239,6 +243,9 @@ const PresenceMain: React.FC = () => {
         };
         await presenceService.checkIn(payload);
       } else {
+        if (!currentAttendance?.id) {
+          throw new Error("ID referensi presensi tidak ditemukan. Harap muat ulang halaman.");
+        }
         const payload: any = {
           check_out: currentTimeStr,
           out_latitude: coords.lat,
@@ -249,7 +256,7 @@ const PresenceMain: React.FC = () => {
           early_departure_minutes: scheduleResult.minutes,
           early_departure_reason: reason
         };
-        await presenceService.checkOut(todayAttendance.id, payload);
+        await presenceService.checkOut(currentAttendance.id, payload);
       }
 
       // Tahap 3: Finalisasi UI (hanya setelah simpan DB sukses)
@@ -257,7 +264,7 @@ const PresenceMain: React.FC = () => {
       
       await Swal.fire({ 
         title: 'Berhasil!', 
-        text: `Presensi ${isCheckOut ? 'Pulang' : 'Masuk'} berhasil dicatat.`, 
+        text: `Presensi ${isCurrentlyCheckingOut ? 'Pulang' : 'Masuk'} berhasil dicatat.`, 
         icon: 'success', 
         timer: 2000,
         showConfirmButton: false
@@ -265,11 +272,11 @@ const PresenceMain: React.FC = () => {
       
       // Refresh data tampilan
       await fetchInitialData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Attendance Process Error:", error);
       Swal.fire({
         title: 'Gagal Menyimpan',
-        text: 'Terjadi kesalahan sistem saat menyimpan data. Harap periksa koneksi internet Anda.',
+        text: error.message || 'Terjadi kesalahan sistem saat menyimpan data. Harap periksa koneksi internet Anda.',
         icon: 'error',
         confirmButtonColor: '#006E62'
       });
