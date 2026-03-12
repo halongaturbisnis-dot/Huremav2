@@ -187,16 +187,11 @@ export const reportService = {
   },
 
   async getFinanceReport(startDate: string, endDate: string) {
-    const startMonth = new Date(startDate).getMonth() + 1;
-    const startYear = new Date(startDate).getFullYear();
-    const endMonth = new Date(endDate).getMonth() + 1;
-    const endYear = new Date(endDate).getFullYear();
-
     const [
       { data: payrollItems },
       { data: reimbursements },
       { data: compensations },
-      { data: overtimes }
+      overtimes
     ] = await Promise.all([
       supabase
         .from('finance_payroll_items')
@@ -208,8 +203,7 @@ export const reportService = {
         .from('finance_reimbursements')
         .select('*, account:accounts(full_name, internal_nik)')
         .gte('transaction_date', startDate)
-        .lte('transaction_date', endDate)
-        .in('status', ['Approved', 'Partially Approved']),
+        .lte('transaction_date', endDate),
       supabase
         .from('account_compensation_logs')
         .select('*, account:accounts(full_name, internal_nik)')
