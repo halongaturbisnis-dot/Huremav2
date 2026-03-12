@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Fingerprint, ShieldCheck, Timer, Umbrella, Calendar, Heart, 
   ClipboardList, Target, CheckSquare, MapPin, Video, MessageSquare, 
-  AlertTriangle, Receipt, Wallet, UserCircle
+  AlertTriangle, Receipt, Wallet, UserCircle, Files, Database,
+  Users, CalendarClock, BarChart3, Settings, ArrowLeft
 } from 'lucide-react';
 import { AuthUser, Attendance, Overtime } from '../../types';
 import { presenceService } from '../../services/presenceService';
@@ -62,6 +63,9 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({ user, setActiveTab })
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
+  const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
+  const isAdmin = user.role === 'admin' || user.is_hr_admin || user.is_performance_admin || user.is_finance_admin;
+
   const menuItems = [
     { id: 'presence', label: 'Presensi Reguler', icon: Fingerprint, color: 'bg-emerald-50 text-[#006E62]' },
     { id: 'dispensation', label: 'Dispensasi Presensi', icon: ShieldCheck, color: 'bg-blue-50 text-blue-600' },
@@ -79,6 +83,22 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({ user, setActiveTab })
     { id: 'my_payslip', label: 'Slip Gaji Saya', icon: Receipt, color: 'bg-green-50 text-green-600' },
     { id: 'early_salary', label: 'Ambil Gaji Awal', icon: Wallet, color: 'bg-yellow-50 text-yellow-600' },
     { id: 'reimbursement', label: 'Reimburse', icon: Receipt, color: 'bg-pink-50 text-pink-600' },
+    { id: 'document', label: 'Dokumen Digital', icon: Files, color: 'bg-blue-50 text-blue-600' },
+    ...(isAdmin ? [{ id: 'master_menu', label: 'Master', icon: Database, color: 'bg-gray-100 text-gray-700' }] : []),
+  ];
+
+  const adminMenuItems = [
+    { id: 'master_app', label: 'Master Aplikasi', icon: Database, color: 'bg-indigo-50 text-indigo-600' },
+    { id: 'location', label: 'Data Lokasi', icon: MapPin, color: 'bg-emerald-50 text-emerald-600' },
+    { id: 'schedule', label: 'Manajemen Jadwal', icon: CalendarClock, color: 'bg-blue-50 text-blue-600' },
+    { id: 'account', label: 'Manajemen Akun', icon: Users, color: 'bg-purple-50 text-purple-600' },
+    { id: 'salary_scheme', label: 'Skema Gaji', icon: Receipt, color: 'bg-amber-50 text-amber-600' },
+    { id: 'salary_adjustment', label: 'Kustom Gaji', icon: Receipt, color: 'bg-orange-50 text-orange-600' },
+    { id: 'compensation', label: 'Kompensasi', icon: Receipt, color: 'bg-rose-50 text-rose-600' },
+    { id: 'admin_dispensation', label: 'Verif Dispensasi', icon: ShieldCheck, color: 'bg-cyan-50 text-cyan-600' },
+    { id: 'attendance_report', label: 'Laporan Kehadiran', icon: BarChart3, color: 'bg-slate-50 text-slate-600' },
+    { id: 'finance_report', label: 'Laporan Finance', icon: Wallet, color: 'bg-green-50 text-green-600' },
+    { id: 'admin_settings', label: 'Pengaturan Admin', icon: Settings, color: 'bg-gray-50 text-gray-600' },
   ];
 
   const activeWorkSession = todayAttendance?.check_in && !todayAttendance.check_out;
@@ -140,21 +160,43 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({ user, setActiveTab })
       </div>
 
       {/* Grid Menu Section */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className="flex flex-col items-center gap-2 group"
-          >
-            <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-200`}>
-              <item.icon size={24} />
-            </div>
-            <span className="text-[10px] font-bold text-gray-600 text-center leading-tight px-1">
-              {item.label}
-            </span>
-          </button>
-        ))}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            {viewMode === 'admin' ? 'Menu Master / Admin' : 'Menu Layanan'}
+          </h3>
+          {viewMode === 'admin' && (
+            <button 
+              onClick={() => setViewMode('user')}
+              className="flex items-center gap-1 text-[10px] font-bold text-[#006E62] uppercase tracking-wider"
+            >
+              <ArrowLeft size={14} /> Kembali
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+          {(viewMode === 'admin' ? adminMenuItems : menuItems).map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                if (item.id === 'master_menu') {
+                  setViewMode('admin');
+                } else {
+                  setActiveTab(item.id);
+                }
+              }}
+              className="flex flex-col items-center gap-2 group"
+            >
+              <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center shadow-sm group-active:scale-95 transition-transform duration-200`}>
+                <item.icon size={24} />
+              </div>
+              <span className="text-[10px] font-bold text-gray-600 text-center leading-tight px-1">
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

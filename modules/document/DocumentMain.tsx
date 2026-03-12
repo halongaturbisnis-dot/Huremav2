@@ -3,19 +3,25 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Files, FileText, Image as ImageIcon, ExternalLink, Trash2, Filter, FolderOpen, Clock, Users } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { documentService } from '../../services/documentService';
-import { DigitalDocument } from '../../types';
+import { DigitalDocument, AuthUser } from '../../types';
 import { googleDriveService } from '../../services/googleDriveService';
 import DocumentForm from './DocumentForm';
 import { CardSkeleton } from '../../components/Common/Skeleton';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 
-const DocumentMain: React.FC = () => {
+interface DocumentMainProps {
+  user?: AuthUser;
+}
+
+const DocumentMain: React.FC<DocumentMainProps> = ({ user }) => {
   const [documents, setDocuments] = useState<DigitalDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingDoc, setEditingDoc] = useState<DigitalDocument | null>(null);
+
+  const isAdmin = user?.role === 'admin' || user?.is_hr_admin;
 
   useEffect(() => {
     fetchDocuments();
@@ -89,13 +95,15 @@ const DocumentMain: React.FC = () => {
           <button className="p-2 border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50 transition-colors">
             <Filter size={18} />
           </button>
-          <button 
-            onClick={() => { setEditingDoc(null); setShowForm(true); }}
-            className="flex items-center gap-2 bg-[#006E62] text-white px-4 py-2 rounded-md hover:bg-[#005a50] transition-colors shadow-sm"
-          >
-            <Plus size={18} />
-            <span className="font-medium text-sm">Unggah Dokumen</span>
-          </button>
+          {isAdmin && (
+            <button 
+              onClick={() => { setEditingDoc(null); setShowForm(true); }}
+              className="flex items-center gap-2 bg-[#006E62] text-white px-4 py-2 rounded-md hover:bg-[#005a50] transition-colors shadow-sm"
+            >
+              <Plus size={18} />
+              <span className="font-medium text-sm">Unggah Dokumen</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -129,18 +137,22 @@ const DocumentMain: React.FC = () => {
                   >
                     <ExternalLink size={16} />
                   </a>
-                  <button 
-                    onClick={() => { setEditingDoc(doc); setShowForm(true); }}
-                    className="p-1.5 text-gray-400 hover:text-[#006E62] transition-colors"
-                  >
-                    <Files size={16} />
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(doc.id)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {isAdmin && (
+                    <>
+                      <button 
+                        onClick={() => { setEditingDoc(doc); setShowForm(true); }}
+                        className="p-1.5 text-gray-400 hover:text-[#006E62] transition-colors"
+                      >
+                        <Files size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(doc.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 

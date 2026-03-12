@@ -147,7 +147,7 @@ const App: React.FC = () => {
           ) : activeTab === 'schedule' ? (
             <ScheduleMain />
           ) : activeTab === 'document' ? (
-            <DocumentMain />
+            <DocumentMain user={user} />
           ) : activeTab === 'presence' ? (
             <PresenceMain />
           ) : activeTab === 'overtime' ? (
@@ -303,14 +303,16 @@ const App: React.FC = () => {
               <p className="mt-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Memuat Modul...</p>
             </div>
           }>
-            {activeTab === 'location' ? (
+            {activeTab === 'dashboard' ? (
+              <MobileDashboard user={user} setActiveTab={setActiveTab} />
+            ) : activeTab === 'location' ? (
               <LocationMain />
             ) : activeTab === 'account' ? (
               <AccountMain />
             ) : activeTab === 'schedule' ? (
               <ScheduleMain />
             ) : activeTab === 'document' ? (
-              <DocumentMain />
+              <DocumentMain user={user} />
             ) : activeTab === 'presence' ? (
               <PresenceMain />
             ) : activeTab === 'overtime' ? (
