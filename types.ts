@@ -61,6 +61,10 @@ export interface AuthUser {
   gender: 'Laki-laki' | 'Perempuan';
   schedule_type: string;
   photo_google_id?: string | null;
+  // Admin Permissions
+  is_hr_admin?: boolean;
+  is_performance_admin?: boolean;
+  is_finance_admin?: boolean;
 }
 
 export interface Account {

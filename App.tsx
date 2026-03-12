@@ -36,6 +36,7 @@ const AttendanceReportMain = lazy(() => import('./modules/report/AttendanceRepor
 const ReportMainModule = lazy(() => import('./modules/report/ReportMainModule'));
 const FinanceReportMain = lazy(() => import('./modules/report/FinanceReportMain'));
 const MasterMain = lazy(() => import('./modules/settings/MasterMain'));
+const AdminSettingsModule = lazy(() => import('./modules/settings/AdminSettingsModule'));
 const Login = lazy(() => import('./modules/auth/Login'));
 
 import { authService } from './services/authService';
@@ -43,17 +44,43 @@ import { AuthUser } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report'>('presence');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report'>('presence');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-    setIsAuthChecking(false);
+    const refreshUserPermissions = async () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser) {
+        try {
+          // Fetch latest permissions
+          const { settingsService } = await import('./services/settingsService');
+          const [hrAdmins, perfAdmins, finAdmins] = await Promise.all([
+            settingsService.getSetting('admin_hr_ids', []),
+            settingsService.getSetting('admin_performance_ids', []),
+            settingsService.getSetting('admin_finance_ids', [])
+          ]);
+
+          const updatedUser = {
+            ...currentUser,
+            is_hr_admin: hrAdmins.includes(currentUser.id),
+            is_performance_admin: perfAdmins.includes(currentUser.id),
+            is_finance_admin: finAdmins.includes(currentUser.id)
+          };
+          
+          setUser(updatedUser);
+          // Update localStorage to keep it in sync
+          localStorage.setItem('hurema_user_session', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Error refreshing user permissions:', error);
+          setUser(currentUser);
+        }
+      }
+      setIsAuthChecking(false);
+    };
+
+    refreshUserPermissions();
   }, []);
 
   if (isAuthChecking) {
@@ -241,6 +268,8 @@ const App: React.FC = () => {
               <FinanceReportMain />
             ) : activeTab === 'master_app' ? (
               <MasterMain />
+            ) : activeTab === 'admin_settings' ? (
+              <AdminSettingsModule />
             ) : (
               <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                 <p className="font-medium text-sm">Modul "{activeTab}" sedang dalam pengembangan.</p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   MapPin, LayoutDashboard, Settings, Users, 
   CalendarClock, Files, ChevronDown, ChevronRight, 
-  Menu as MenuIcon, ChevronLeft, Database, Fingerprint, LogOut, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, BarChart3, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, Wallet
+  Menu as MenuIcon, ChevronLeft, Database, Fingerprint, LogOut, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, BarChart3, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, Wallet, ShieldCheck
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { financeService } from '../../services/financeService';
@@ -116,132 +116,153 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
         <NavItem id="dashboard" icon={LayoutDashboard} label="Beranda" />
         
         {/* Master Menu Group */}
-        <div className="mt-4">
-          <button 
-            onClick={() => setIsMasterOpen(!isMasterOpen)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
-            title={isCollapsed ? 'Master' : ''}
-          >
-            <Database size={20} className="shrink-0 text-gray-400" />
-            {!isCollapsed && (
-              <div className="flex items-center justify-between flex-1 overflow-hidden">
-                <span className="font-medium text-sm truncate">Master</span>
-                {isMasterOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+        {(user?.role === 'admin' || user?.is_hr_admin) && (
+          <div className="mt-4">
+            <button 
+              onClick={() => setIsMasterOpen(!isMasterOpen)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
+              title={isCollapsed ? 'Master' : ''}
+            >
+              <Database size={20} className="shrink-0 text-gray-400" />
+              {!isCollapsed && (
+                <div className="flex items-center justify-between flex-1 overflow-hidden">
+                  <span className="font-medium text-sm truncate">Master</span>
+                  {isMasterOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+                </div>
+              )}
+            </button>
+            
+            {(isMasterOpen || isCollapsed) && (
+              <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
+                {user?.role === 'admin' && (
+                  <>
+                    <NavItem id="master_app" icon={Database} label="Master Aplikasi" indent />
+                    <NavItem id="admin_settings" icon={ShieldCheck} label="Pengaturan Admin" indent />
+                  </>
+                )}
+                <NavItem id="location" icon={MapPin} label="Data Lokasi" indent />
+                <NavItem id="schedule" icon={CalendarClock} label="Manajemen Jadwal" indent />
+                <NavItem id="account" icon={Users} label="Akun" indent />
               </div>
             )}
-          </button>
-          
-          {(isMasterOpen || isCollapsed) && (
-            <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
-              <NavItem id="master_app" icon={Database} label="Master Aplikasi" indent />
-              <NavItem id="location" icon={MapPin} label="Data Lokasi" indent />
-              <NavItem id="schedule" icon={CalendarClock} label="Manajemen Jadwal" indent />
-              <NavItem id="account" icon={Users} label="Akun" indent />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Performance Menu Group */}
-        <div className="mt-4">
-          <button 
-            onClick={() => setIsPerformanceOpen(!isPerformanceOpen)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
-            title={isCollapsed ? 'Performance' : ''}
-          >
-            <BarChart3 size={20} className="shrink-0 text-gray-400" />
-            {!isCollapsed && (
-              <div className="flex items-center justify-between flex-1 overflow-hidden">
-                <span className="font-medium text-sm truncate">Performance</span>
-                {isPerformanceOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+        {(user?.role === 'admin' || user?.is_performance_admin) && (
+          <div className="mt-4">
+            <button 
+              onClick={() => setIsPerformanceOpen(!isPerformanceOpen)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
+              title={isCollapsed ? 'Performance' : ''}
+            >
+              <BarChart3 size={20} className="shrink-0 text-gray-400" />
+              {!isCollapsed && (
+                <div className="flex items-center justify-between flex-1 overflow-hidden">
+                  <span className="font-medium text-sm truncate">Performance</span>
+                  {isPerformanceOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+                </div>
+              )}
+            </button>
+            
+            {(isPerformanceOpen || isCollapsed) && (
+              <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
+                <NavItem id="kpi" icon={Target} label="Key Performance Indicator" indent />
+                <NavItem id="key_activity" icon={CheckSquare} label="Key Activities" indent />
+                <NavItem id="sales_report" icon={MapPin} label="Sales Report" indent />
               </div>
             )}
-          </button>
-          
-          {(isPerformanceOpen || isCollapsed) && (
-            <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
-              <NavItem id="kpi" icon={Target} label="Key Performance Indicator" indent />
-              <NavItem id="key_activity" icon={CheckSquare} label="Key Activities" indent />
-              <NavItem id="sales_report" icon={MapPin} label="Sales Report" indent />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="mt-4">
-          <NavItem id="employee_of_the_period" icon={Trophy} label="Employee of The Period" />
-          <NavItem id="feedback" icon={ClipboardList} label="Feedback Pegawai" />
-          <NavItem id="lapor" icon={AlertTriangle} label="Lapor Pelanggaran" />
-          <NavItem id="rapat" icon={Video} label="Notulensi Rapat" />
-          <NavItem id="pengumuman" icon={Megaphone} label="Pengumuman" />
+          {(user?.role === 'admin' || user?.is_performance_admin) && (
+            <>
+              <NavItem id="employee_of_the_period" icon={Trophy} label="Employee of The Period" />
+              <NavItem id="feedback" icon={ClipboardList} label="Feedback Pegawai" />
+              <NavItem id="lapor" icon={AlertTriangle} label="Lapor Pelanggaran" />
+              <NavItem id="rapat" icon={Video} label="Notulensi Rapat" />
+              <NavItem id="pengumuman" icon={Megaphone} label="Pengumuman" />
+            </>
+          )}
         </div>
 
         {/* Finance Menu Group */}
-        <div className="mt-4">
-          <button 
-            onClick={() => setIsFinanceOpen(!isFinanceOpen)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
-            title={isCollapsed ? 'Finance' : ''}
-          >
-            <div className="relative shrink-0">
-              <Receipt size={20} className="text-gray-400" />
-              {unreadReimbursements > 0 && isCollapsed && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
-              )}
-            </div>
-            {!isCollapsed && (
-              <div className="flex items-center justify-between flex-1 overflow-hidden">
-                <div className="flex items-center gap-2 truncate">
-                  <span className="font-medium text-sm">Finance</span>
-                  {(unreadReimbursements > 0 || unreadCompensations > 0) && (
-                    <span className="bg-red-500 text-white text-[8px] font-bold px-1 rounded-full">NEW</span>
-                  )}
+        {(user?.role === 'admin' || user?.is_finance_admin) && (
+          <div className="mt-4">
+            <button 
+              onClick={() => setIsFinanceOpen(!isFinanceOpen)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
+              title={isCollapsed ? 'Finance' : ''}
+            >
+              <div className="relative shrink-0">
+                <Receipt size={20} className="text-gray-400" />
+                {unreadReimbursements > 0 && isCollapsed && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+                )}
+              </div>
+              {!isCollapsed && (
+                <div className="flex items-center justify-between flex-1 overflow-hidden">
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="font-medium text-sm">Finance</span>
+                    {(unreadReimbursements > 0 || unreadCompensations > 0) && (
+                      <span className="bg-red-500 text-white text-[8px] font-bold px-1 rounded-full">NEW</span>
+                    )}
+                  </div>
+                  {isFinanceOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
                 </div>
-                {isFinanceOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+              )}
+            </button>
+            
+            {(isFinanceOpen || isCollapsed) && (
+              <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
+                <NavItem id="salary_scheme" icon={Receipt} label="Master Skema Gaji" indent />
+                {(user?.role === 'admin' || user?.is_finance_admin) && (
+                  <>
+                    <NavItem id="salary_adjustment" icon={Receipt} label="Kustom Gaji" indent />
+                    <NavItem id="payroll" icon={Receipt} label="Payroll" indent />
+                  </>
+                )}
+                <NavItem id="my_payslip" icon={Receipt} label="Slip Gaji Saya" indent />
+                <NavItem id="reimbursement" icon={Receipt} label="Reimburse" indent badge={(user?.role === 'admin' || user?.is_finance_admin) ? unreadReimbursements : undefined} />
+                <NavItem id="early_salary" icon={Receipt} label="Ambil Gaji Awal" indent />
+                {(user?.role === 'admin' || user?.is_finance_admin) && (
+                  <NavItem id="compensation" icon={Receipt} label="Kompensasi" indent badge={unreadCompensations} />
+                )}
               </div>
             )}
-          </button>
-          
-          {(isFinanceOpen || isCollapsed) && (
-            <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
-              <NavItem id="salary_scheme" icon={Receipt} label="Master Skema Gaji" indent />
-              {user?.role === 'admin' && (
-                <>
-                  <NavItem id="salary_adjustment" icon={Receipt} label="Kustom Gaji" indent />
-                  <NavItem id="payroll" icon={Receipt} label="Payroll" indent />
-                </>
-              )}
-              <NavItem id="my_payslip" icon={Receipt} label="Slip Gaji Saya" indent />
-              <NavItem id="reimbursement" icon={Receipt} label="Reimburse" indent badge={user?.role === 'admin' ? unreadReimbursements : undefined} />
-              <NavItem id="early_salary" icon={Receipt} label="Ambil Gaji Awal" indent />
-              {user?.role === 'admin' && (
-                <NavItem id="compensation" icon={Receipt} label="Kompensasi" indent badge={unreadCompensations} />
-              )}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Laporan Menu Group */}
-        <div className="mt-4">
-          <button 
-            onClick={() => setIsReportOpen(!isReportOpen)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
-            title={isCollapsed ? 'Laporan' : ''}
-          >
-            <BarChart3 size={20} className="shrink-0 text-gray-400" />
-            {!isCollapsed && (
-              <div className="flex items-center justify-between flex-1 overflow-hidden">
-                <span className="font-medium text-sm truncate">Laporan</span>
-                {isReportOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+        {(user?.role === 'admin' || user?.is_hr_admin || user?.is_finance_admin) && (
+          <div className="mt-4">
+            <button 
+              onClick={() => setIsReportOpen(!isReportOpen)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all duration-200 w-full mb-1 text-gray-600 hover:bg-gray-100`}
+              title={isCollapsed ? 'Laporan' : ''}
+            >
+              <BarChart3 size={20} className="shrink-0 text-gray-400" />
+              {!isCollapsed && (
+                <div className="flex items-center justify-between flex-1 overflow-hidden">
+                  <span className="font-medium text-sm truncate">Laporan</span>
+                  {isReportOpen ? <ChevronDown size={16} className="text-gray-300" /> : <ChevronRight size={16} className="text-gray-300" />}
+                </div>
+              )}
+            </button>
+            
+            {(isReportOpen || isCollapsed) && (
+              <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
+                {(user?.role === 'admin' || user?.is_hr_admin) && (
+                  <NavItem id="attendance_report" icon={Fingerprint} label="Laporan Kehadiran" indent />
+                )}
+                {(user?.role === 'admin' || user?.is_finance_admin) && (
+                  <NavItem id="finance_report" icon={Wallet} label="Laporan Finance" indent />
+                )}
               </div>
             )}
-          </button>
-          
-          {(isReportOpen || isCollapsed) && (
-            <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
-              <NavItem id="attendance_report" icon={Fingerprint} label="Laporan Kehadiran" indent />
-              <NavItem id="finance_report" icon={Wallet} label="Laporan Finance" indent />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Presence & Dispensation Group */}
         <div className="mt-4">
@@ -274,7 +295,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
               <NavItem id="presence" icon={Fingerprint} label="Presensi Reguler" indent />
               <NavItem id="overtime" icon={Timer} label="Presensi Lembur" indent />
               <NavItem id="dispensation" icon={ClipboardList} label="Dispensasi Presensi" indent />
-              {user?.role === 'admin' && (
+              {(user?.role === 'admin' || user?.is_hr_admin) && (
                 <NavItem id="admin_dispensation" icon={ClipboardList} label="Antrean Dispensasi" indent badge={unreadDispensations} />
               )}
             </div>

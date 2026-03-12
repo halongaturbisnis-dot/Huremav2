@@ -1,6 +1,7 @@
 
 import { supabase } from '../lib/supabase';
 import { AuthUser } from '../types';
+import { settingsService } from './settingsService';
 
 const SESSION_KEY = 'hurema_user_session';
 
@@ -19,9 +20,19 @@ export const authService = {
     // Determine role based on database value or fallback to access code logic
     const role = data.role || ((data.access_code.startsWith('SP') || data.access_code.includes('ADM')) ? 'admin' : 'user');
 
+    // Fetch Admin Permissions from app_settings
+    const [hrAdmins, perfAdmins, finAdmins] = await Promise.all([
+      settingsService.getSetting('admin_hr_ids', []),
+      settingsService.getSetting('admin_performance_ids', []),
+      settingsService.getSetting('admin_finance_ids', [])
+    ]);
+
     const user: AuthUser = {
       ...data,
-      role
+      role,
+      is_hr_admin: hrAdmins.includes(data.id),
+      is_performance_admin: perfAdmins.includes(data.id),
+      is_finance_admin: finAdmins.includes(data.id)
     } as AuthUser;
     localStorage.setItem(SESSION_KEY, JSON.stringify(user));
     return user;
