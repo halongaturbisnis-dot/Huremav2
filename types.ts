@@ -1,3 +1,18 @@
+export interface EmployeeReportData {
+  totalEmployees: number;
+  newEmployees: number;
+  exitEmployees: number;
+  genderRatio: { name: string; value: number }[];
+  ageDistribution: { name: string; value: number }[];
+  educationDistribution: { name: string; value: number }[];
+  locationDistribution: { name: string; value: number }[];
+  positionDistribution: { name: string; value: number }[];
+  contractTypeDistribution: { name: string; value: number }[];
+  tenureDistribution: { name: string; value: number }[];
+  healthRiskProfile: { name: string; value: number }[];
+  disciplineSummary: { name: string; value: number }[];
+}
+
 export interface Location {
   id: string;
   name: string;

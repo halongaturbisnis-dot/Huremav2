@@ -35,6 +35,7 @@ const CompensationMain = lazy(() => import('./modules/finance/CompensationMain')
 const DispensationMain = lazy(() => import('./modules/dispensation/DispensationMain'));
 const AdminDispensationMain = lazy(() => import('./modules/dispensation/AdminDispensationMain'));
 const AttendanceReportMain = lazy(() => import('./modules/report/AttendanceReportMain'));
+const EmployeeReportMain = lazy(() => import('./modules/report/EmployeeReportMain'));
 const ReportMainModule = lazy(() => import('./modules/report/ReportMainModule'));
 const FinanceReportMain = lazy(() => import('./modules/report/FinanceReportMain'));
 const MasterMain = lazy(() => import('./modules/settings/MasterMain'));
@@ -46,7 +47,7 @@ import { AuthUser } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report'>(
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report' | 'employee_report'>(
     (window.innerWidth < 768 && authService.getCurrentUser()?.role !== 'admin') ? 'dashboard' : 'presence'
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -284,6 +285,7 @@ const App: React.FC = () => {
               )}
               <NavItemMobile id="submission" icon={ClipboardCheck} label="Pengajuan" />
               <NavItemMobile id="document" icon={Files} label="Dokumen Digital" />
+              <NavItemMobile id="employee_report" icon={BarChart3} label="Laporan Karyawan" />
               <NavItemMobile id="attendance_report" icon={BarChart3} label="Laporan Kehadiran" />
               <NavItemMobile id="finance_report" icon={Wallet} label="Laporan Finance" />
               <NavItemMobile id="settings" icon={Settings} label="Pengaturan" />
@@ -361,6 +363,8 @@ const App: React.FC = () => {
               <DispensationMain user={user} />
             ) : activeTab === 'admin_dispensation' ? (
               <AdminDispensationMain user={user} />
+            ) : activeTab === 'employee_report' ? (
+              <EmployeeReportMain />
             ) : activeTab === 'attendance_report' ? (
               <AttendanceReportMain />
             ) : activeTab === 'finance_report' ? (

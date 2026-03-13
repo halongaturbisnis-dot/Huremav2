@@ -254,7 +254,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
             {(isReportOpen || isCollapsed) && (
               <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
                 {(user?.role === 'admin' || user?.is_hr_admin) && (
-                  <NavItem id="attendance_report" icon={Fingerprint} label="Laporan Kehadiran" indent />
+                  <>
+                    <NavItem id="employee_report" icon={BarChart3} label="Laporan Karyawan" indent />
+                    <NavItem id="attendance_report" icon={Fingerprint} label="Laporan Kehadiran" indent />
+                  </>
                 )}
                 {(user?.role === 'admin' || user?.is_finance_admin) && (
                   <NavItem id="finance_report" icon={Wallet} label="Laporan Finance" indent />
