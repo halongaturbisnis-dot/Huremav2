@@ -143,7 +143,7 @@ const App: React.FC = () => {
           ) : activeTab === 'location' ? (
             <LocationMain />
           ) : activeTab === 'account' ? (
-            <AccountMain />
+            <AccountMain user={user} setUser={setUser} />
           ) : activeTab === 'schedule' ? (
             <ScheduleMain />
           ) : activeTab === 'document' ? (
@@ -203,7 +203,7 @@ const App: React.FC = () => {
           ) : activeTab === 'master_app' ? (
             <MasterMain />
           ) : activeTab === 'settings' ? (
-            <AdminSettingsModule />
+            user?.role === 'admin' ? <AdminSettingsModule /> : <AccountMain user={user} setUser={setUser} isSelfProfile={true} />
           ) : (
             <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
               <p className="font-medium text-sm">Modul "{activeTab}" sedang dalam pengembangan.</p>

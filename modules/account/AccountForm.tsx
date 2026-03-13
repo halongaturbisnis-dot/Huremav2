@@ -10,9 +10,10 @@ interface AccountFormProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
   initialData?: Partial<AccountInput>;
+  isSelfEdit?: boolean;
 }
 
-const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialData }) => {
+const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialData, isSelfEdit = false }) => {
   const [formData, setFormData] = useState<any>({
     full_name: initialData?.full_name || '',
     nik_ktp: initialData?.nik_ktp || '',
@@ -364,11 +365,11 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label htmlFor="internal_nik" required>NIK Internal</Label>
-                    <input id="internal_nik" name="internal_nik" value={formData.internal_nik} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none" required />
+                    <input id="internal_nik" name="internal_nik" value={formData.internal_nik} onChange={handleChange} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`} required disabled={isSelfEdit} />
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="location_id" required>Lokasi</Label>
-                    <select id="location_id" name="location_id" value={formData.location_id} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none" required>
+                    <select id="location_id" name="location_id" value={formData.location_id} onChange={handleChange} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`} required disabled={isSelfEdit}>
                       <option value="">-- Pilih Lokasi --</option>
                       {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                     </select>
@@ -385,18 +386,21 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                         value={formData.position} 
                         onChange={(e) => { handleChange(e); setShowPosDropdown(true); }}
                         onFocus={() => setShowPosDropdown(true)}
-                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none pr-7 bg-white" 
+                        className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none pr-7 ${isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}`} 
                         required 
+                        disabled={isSelfEdit}
                       />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowPosDropdown(!showPosDropdown)}
-                        className="absolute right-0 top-0 bottom-0 px-2 flex items-center text-gray-400"
-                      >
-                        <ChevronDown size={14} />
-                      </button>
+                      {!isSelfEdit && (
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPosDropdown(!showPosDropdown)}
+                          className="absolute right-0 top-0 bottom-0 px-2 flex items-center text-gray-400"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      )}
                     </div>
-                    {showPosDropdown && filteredPositions.length > 0 && (
+                    {showPosDropdown && filteredPositions.length > 0 && !isSelfEdit && (
                       <div className="absolute z-[70] w-full mt-1 bg-white border border-gray-100 rounded shadow-lg max-h-40 overflow-y-auto">
                         {filteredPositions.map(p => (
                           <div 
@@ -423,17 +427,20 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                         value={formData.grade} 
                         onChange={(e) => { handleChange(e); setShowGradeDropdown(true); }}
                         onFocus={() => setShowGradeDropdown(true)}
-                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none pr-7 bg-white" 
+                        className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none pr-7 ${isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}`} 
+                        disabled={isSelfEdit}
                       />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowGradeDropdown(!showGradeDropdown)}
-                        className="absolute right-0 top-0 bottom-0 px-2 flex items-center text-gray-400"
-                      >
-                        <ChevronDown size={14} />
-                      </button>
+                      {!isSelfEdit && (
+                        <button 
+                          type="button" 
+                          onClick={() => setShowGradeDropdown(!showGradeDropdown)}
+                          className="absolute right-0 top-0 bottom-0 px-2 flex items-center text-gray-400"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                      )}
                     </div>
-                    {showGradeDropdown && filteredGrades.length > 0 && (
+                    {showGradeDropdown && filteredGrades.length > 0 && !isSelfEdit && (
                       <div className="absolute z-[70] w-full mt-1 bg-white border border-gray-100 rounded shadow-lg max-h-40 overflow-y-auto">
                         {filteredGrades.map(g => (
                           <div 
@@ -472,7 +479,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                 )}
                 <div className="space-y-1">
                   <Label htmlFor="employee_type" required>Jenis Karyawan</Label>
-                  <select id="employee_type" name="employee_type" value={formData.employee_type} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none" required>
+                  <select id="employee_type" name="employee_type" value={formData.employee_type} onChange={handleChange} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`} required disabled={isSelfEdit}>
                     <option value="Tetap">Tetap</option>
                     <option value="Kontrak">Kontrak</option>
                     <option value="Harian">Harian</option>
@@ -482,7 +489,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
                     <Label htmlFor="start_date" required>Tgl Mulai</Label>
-                    <input id="start_date" type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none" required />
+                    <input id="start_date" type="date" name="start_date" value={formData.start_date} onChange={handleChange} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`} required disabled={isSelfEdit} />
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="end_date">Tgl Akhir</Label>
@@ -492,8 +499,8 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                       name="end_date" 
                       value={formData.end_date} 
                       onChange={handleChange} 
-                      disabled={formData.employee_type === 'Tetap'}
-                      className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none transition-colors ${formData.employee_type === 'Tetap' ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}`} 
+                      disabled={formData.employee_type === 'Tetap' || isSelfEdit}
+                      className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none transition-colors ${formData.employee_type === 'Tetap' || isSelfEdit ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}`} 
                     />
                   </div>
                 </div>
@@ -578,8 +585,8 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                         name="schedule_id" 
                         value={formData.schedule_id} 
                         onChange={handleChange} 
-                        disabled={!formData.location_id}
-                        className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none bg-white disabled:bg-gray-50 appearance-none pr-8"
+                        disabled={isSelfEdit || !formData.location_id}
+                        className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none bg-white appearance-none pr-8 ${isSelfEdit || !formData.location_id ? 'bg-gray-50 cursor-not-allowed' : ''}`}
                       >
                         <option value="">-- {formData.location_id ? 'Pilih Jadwal' : 'Pilih Lokasi Terlebih Dahulu'} --</option>
                         <option value="FLEKSIBEL">Fleksibel</option>
@@ -595,7 +602,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                  <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <Label htmlFor="leave_quota">Jatah Cuti Tahunan (Hari)</Label>
-                      <input id="leave_quota" type="number" name="leave_quota" value={formData.leave_quota} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none" />
+                      <input id="leave_quota" type="number" name="leave_quota" value={formData.leave_quota} onChange={handleChange} disabled={isSelfEdit} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-50 cursor-not-allowed' : ''}`} />
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="maternity_leave_quota">Jatah Cuti Melahirkan (Hari)</Label>
@@ -605,18 +612,18 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                         name="maternity_leave_quota" 
                         value={formData.maternity_leave_quota} 
                         onChange={handleChange} 
-                        disabled={formData.gender === 'Laki-laki'}
-                        className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${formData.gender === 'Laki-laki' ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`} 
+                        disabled={isSelfEdit || formData.gender === 'Laki-laki'}
+                        className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit || formData.gender === 'Laki-laki' ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`} 
                       />
                       {formData.gender === 'Laki-laki' && <p className="text-[8px] text-gray-400 italic">Hanya untuk perempuan</p>}
                     </div>
                  </div>
 
                   <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-lg space-y-3">
-                    <label htmlFor="is_leave_accumulated" className="flex items-center justify-between cursor-pointer group">
+                    <label htmlFor="is_leave_accumulated" className={`flex items-center justify-between cursor-pointer group ${isSelfEdit ? 'pointer-events-none' : ''}`}>
                       <span className="text-[9px] font-bold text-gray-500 uppercase">Aktifkan Akumulasi Cuti (Carry-over)</span>
                       <div className="relative inline-flex items-center">
-                        <input id="is_leave_accumulated" type="checkbox" name="is_leave_accumulated" checked={formData.is_leave_accumulated} onChange={handleChange} className="sr-only peer" />
+                        <input id="is_leave_accumulated" type="checkbox" name="is_leave_accumulated" checked={formData.is_leave_accumulated} onChange={handleChange} disabled={isSelfEdit} className="sr-only peer" />
                         <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#006E62]"></div>
                       </div>
                     </label>
@@ -625,11 +632,11 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                       <div className="grid grid-cols-2 gap-2 animate-in slide-in-from-top-1 duration-200">
                         <div className="space-y-1">
                           <Label htmlFor="max_carry_over_days">Maksimal Carry-over (Hari)</Label>
-                          <input id="max_carry_over_days" type="number" name="max_carry_over_days" value={formData.max_carry_over_days} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none bg-white" />
+                          <input id="max_carry_over_days" type="number" name="max_carry_over_days" value={formData.max_carry_over_days} onChange={handleChange} disabled={isSelfEdit} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none bg-white ${isSelfEdit ? 'bg-gray-50 cursor-not-allowed' : ''}`} />
                         </div>
                         <div className="space-y-1">
                           <Label htmlFor="carry_over_quota">Jatah Carry-over Saat Ini (Hari)</Label>
-                          <input id="carry_over_quota" type="number" name="carry_over_quota" value={formData.carry_over_quota} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none bg-white" />
+                          <input id="carry_over_quota" type="number" name="carry_over_quota" value={formData.carry_over_quota} onChange={handleChange} disabled={isSelfEdit} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none bg-white ${isSelfEdit ? 'bg-gray-50 cursor-not-allowed' : ''}`} />
                         </div>
                       </div>
                     )}
@@ -644,10 +651,10 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
                          { id: 'is_presence_limited_ot_in', label: 'Check-in Lembur' },
                          { id: 'is_presence_limited_ot_out', label: 'Check-out Lembur' }
                        ].map(item => (
-                         <label key={item.id} htmlFor={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-100 cursor-pointer hover:bg-white transition-colors">
+                         <label key={item.id} htmlFor={item.id} className={`flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-100 cursor-pointer hover:bg-white transition-colors ${isSelfEdit ? 'pointer-events-none opacity-80' : ''}`}>
                             <span className="text-[10px] font-medium text-gray-600">{item.label}</span>
                             <div className="relative inline-flex items-center cursor-pointer">
-                              <input id={item.id} type="checkbox" name={item.id} checked={(formData as any)[item.id]} onChange={handleChange} className="sr-only peer" />
+                              <input id={item.id} type="checkbox" name={item.id} checked={(formData as any)[item.id]} onChange={handleChange} disabled={isSelfEdit} className="sr-only peer" />
                               <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#006E62]"></div>
                             </div>
                          </label>
@@ -668,11 +675,11 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
 
                  <div className="space-y-1 pt-2">
                     <Label htmlFor="mcu_status">Status Medis / MCU</Label>
-                    <input id="mcu_status" name="mcu_status" value={formData.mcu_status} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none" />
+                    <input id="mcu_status" name="mcu_status" value={formData.mcu_status} onChange={handleChange} disabled={isSelfEdit} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-50 cursor-not-allowed' : ''}`} />
                  </div>
                  <div className="space-y-1">
                     <Label htmlFor="health_risk">Risiko Kesehatan</Label>
-                    <select id="health_risk" name="health_risk" value={formData.health_risk} onChange={handleChange} className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none">
+                    <select id="health_risk" name="health_risk" value={formData.health_risk} onChange={handleChange} disabled={isSelfEdit} className={`w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:ring-1 focus:ring-[#006E62] outline-none ${isSelfEdit ? 'bg-gray-50 cursor-not-allowed' : ''}`}>
                       <option value="">-- Pilih Risiko --</option>
                       <option value="Tidak ada risiko kerja">Tidak ada risiko kerja</option>
                       <option value="Risiko kerja ringan">Risiko kerja ringan</option>
@@ -713,7 +720,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, onSubmit, initialDat
             disabled={Object.values(uploading).some(v => v)}
             className="flex items-center gap-2 bg-[#006E62] text-white px-8 py-2 rounded shadow-md hover:bg-[#005a50] transition-all text-xs font-bold uppercase disabled:opacity-50"
           >
-            <Save size={14} /> Simpan Akun
+            <Save size={14} /> {isSelfEdit ? 'Simpan Perubahan' : 'Simpan Akun'}
           </button>
         </div>
       </div>

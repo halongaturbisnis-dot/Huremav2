@@ -4,7 +4,8 @@ import {
   Plus, Search, Users, Grid, List as ListIcon, 
   ArrowLeft, UserCircle, UserCheck, UserX,
   History, FileBadge, Award, Activity, ShieldAlert,
-  Download, Upload, Image as ImageIcon
+  Download, Upload, Image as ImageIcon,
+  MapPin, Mail, Phone, Edit2, LogOut, Shield
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
@@ -12,7 +13,9 @@ import Swal from 'sweetalert2';
 import { accountService } from '../../services/accountService';
 import { locationService } from '../../services/locationService';
 import { scheduleService } from '../../services/scheduleService';
-import { Account, AccountInput } from '../../types';
+import { financeService } from '../../services/financeService';
+import { authService } from '../../services/authService';
+import { Account, AccountInput, AuthUser, SalaryScheme } from '../../types';
 import AccountForm from './AccountForm';
 import AccountDetail from './AccountDetail';
 import { CardSkeleton } from '../../components/Common/Skeleton';
@@ -26,8 +29,16 @@ import ContractMain from '../contract/ContractMain';
 import CertificationMain from '../certification/CertificationMain';
 import DisciplineMain from '../discipline/DisciplineMain';
 
-const AccountMain: React.FC = () => {
+interface AccountMainProps {
+  user?: AuthUser | null;
+  setUser?: (user: AuthUser | null) => void;
+  isSelfProfile?: boolean;
+}
+
+const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile = false }) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selfAccount, setSelfAccount] = useState<Account | null>(null);
+  const [salaryScheme, setSalaryScheme] = useState<SalaryScheme | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -44,8 +55,31 @@ const AccountMain: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'data' | 'career' | 'contract' | 'cert' | 'health' | 'discipline'>('data');
 
   useEffect(() => {
-    fetchAccounts();
-  }, []);
+    if (isSelfProfile && user) {
+      fetchSelfAccount();
+    } else {
+      fetchAccounts();
+    }
+  }, [isSelfProfile, user]);
+
+  const fetchSelfAccount = async () => {
+    if (!user) return;
+    try {
+      setIsLoading(true);
+      const acc = await accountService.getById(user.id);
+      setSelfAccount(acc);
+      
+      // Fetch salary scheme
+      const assignment = await financeService.getAssignmentByAccountId(user.id);
+      if (assignment && assignment.scheme) {
+        setSalaryScheme(assignment.scheme);
+      }
+    } catch (error) {
+      console.error('Error fetching self account:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchAccounts = async () => {
     try {
@@ -529,6 +563,183 @@ const AccountMain: React.FC = () => {
           onEdit={(acc) => { setSelectedAccountId(null); setEditingAccount(acc); setShowForm(true); }}
           onDelete={(id) => handleDelete(id)}
         />
+      </div>
+    );
+  }
+
+  const DetailRow = ({ label, value }: { label: string, value: any }) => (
+    <div>
+      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-0.5">{label}</p>
+      <p className="text-xs text-gray-700 font-medium leading-tight">{value || '-'}</p>
+    </div>
+  );
+
+  // Self Profile View
+  if (isSelfProfile) {
+    if (isLoading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-[#006E62] border-t-transparent rounded-full animate-spin"></div></div>;
+    if (!selfAccount) return <div className="text-center py-20 text-gray-400">Data profil tidak ditemukan.</div>;
+
+    if (showForm) {
+      return (
+        <AccountForm 
+          onClose={() => setShowForm(false)} 
+          onSubmit={async (data) => {
+            setIsSaving(true);
+            try {
+              const updated = await accountService.update(selfAccount.id, data);
+              setSelfAccount(updated);
+              setShowForm(false);
+              Swal.fire('Berhasil', 'Profil Anda telah diperbarui.', 'success');
+            } catch (error) {
+              Swal.fire('Gagal', 'Gagal memperbarui profil.', 'error');
+            } finally {
+              setIsSaving(false);
+            }
+          }}
+          initialData={selfAccount}
+          isSelfEdit={true}
+        />
+      );
+    }
+
+    return (
+      <div className="space-y-6 animate-in fade-in duration-300 pb-20">
+        {isSaving && <LoadingSpinner />}
+        
+        {/* Header Profile */}
+        <div className="bg-white rounded-md border border-gray-100 p-6 flex flex-col md:flex-row gap-6 items-start shadow-sm">
+          <div className="w-32 h-32 rounded-md border-4 border-gray-50 overflow-hidden shrink-0 shadow-inner">
+            {selfAccount.photo_google_id ? (
+              <img src={googleDriveService.getFileUrl(selfAccount.photo_google_id)} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300"><Users size={48} /></div>
+            )}
+          </div>
+          
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-3">
+               <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{selfAccount.full_name}</h2>
+               <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-[#006E62]/10 text-[#006E62]">
+                 {selfAccount.employee_type}
+               </span>
+            </div>
+            <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">{selfAccount.position} • {selfAccount.grade} • {selfAccount.internal_nik}</p>
+            <div className="flex flex-wrap gap-4 pt-2">
+               <div className="flex items-center gap-1.5 text-xs text-gray-600"><MapPin size={14} className="text-gray-400" /> {selfAccount.location?.name || '-'}</div>
+               <div className="flex items-center gap-1.5 text-xs text-gray-600"><Mail size={14} className="text-gray-400" /> {selfAccount.email || '-'}</div>
+               <div className="flex items-center gap-1.5 text-xs text-gray-600"><Phone size={14} className="text-gray-400" /> {selfAccount.phone || '-'}</div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+             <button 
+               onClick={() => setShowForm(true)} 
+               className="flex items-center gap-2 bg-[#006E62] text-white px-4 py-2 rounded shadow-sm hover:bg-[#005a50] transition-all text-xs font-bold uppercase"
+             >
+               <Edit2 size={14} /> Edit Profil
+             </button>
+             <button 
+               onClick={async () => {
+                 const res = await Swal.fire({
+                   title: 'Logout?',
+                   text: 'Anda akan keluar dari aplikasi.',
+                   icon: 'question',
+                   showCancelButton: true,
+                   confirmButtonColor: '#ef4444',
+                   confirmButtonText: 'Ya, Logout',
+                   cancelButtonText: 'Batal'
+                 });
+                 if (res.isConfirmed && setUser) {
+                   authService.logout();
+                   setUser(null);
+                 }
+               }} 
+               className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded border border-red-100 hover:bg-red-100 transition-all text-xs font-bold uppercase"
+             >
+               <LogOut size={14} /> Keluar
+             </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Identitas Lengkap */}
+          <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
+              <Users size={16} className="text-[#006E62]" />
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Identitas Lengkap</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+               <DetailRow label="NIK KTP" value={selfAccount.nik_ktp} />
+               <DetailRow label="Tanggal Lahir" value={selfAccount.dob} />
+               <DetailRow label="Gender" value={selfAccount.gender} />
+               <DetailRow label="Agama" value={selfAccount.religion} />
+               <DetailRow label="Status Nikah" value={selfAccount.marital_status} />
+               <DetailRow label="Tanggungan" value={selfAccount.dependents_count} />
+            </div>
+            <DetailRow label="Alamat Domisili" value={selfAccount.address} />
+            <div className="grid grid-cols-2 gap-4">
+               <DetailRow label="Pendidikan" value={selfAccount.last_education} />
+               <DetailRow label="Jurusan" value={selfAccount.major} />
+            </div>
+          </div>
+
+          {/* Skema Gaji */}
+          <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
+              <FileBadge size={16} className="text-[#006E62]" />
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Detail Skema Gaji</h4>
+            </div>
+            {salaryScheme ? (
+              <div className="space-y-3">
+                <div className="p-3 bg-emerald-50 rounded border border-emerald-100">
+                  <p className="text-[10px] font-bold text-[#006E62] uppercase tracking-widest mb-1">Nama Skema</p>
+                  <p className="text-sm font-bold text-gray-800">{salaryScheme.name}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <DetailRow label="Gaji Pokok" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.base_salary)} />
+                  <DetailRow label="Total Tunjangan" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
+                    (salaryScheme.meal_allowance || 0) + 
+                    (salaryScheme.transport_allowance || 0) + 
+                    (salaryScheme.position_allowance || 0) + 
+                    (salaryScheme.skill_allowance || 0) + 
+                    (salaryScheme.housing_allowance || 0)
+                  )} />
+                </div>
+                <div className="pt-2 border-t border-gray-50">
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Tunjangan Harian</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="text-[10px] text-gray-600">Makan: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.meal_allowance || 0)}</div>
+                    <div className="text-[10px] text-gray-600">Transport: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.transport_allowance || 0)}</div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-gray-300">
+                <FileBadge size={32} strokeWidth={1} />
+                <p className="text-[10px] font-bold uppercase tracking-widest mt-2 text-gray-400">Belum Ada Skema Gaji</p>
+              </div>
+            )}
+          </div>
+
+          {/* Keamanan & Akses */}
+          <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
+              <Shield size={16} className="text-[#006E62]" />
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Keamanan & Akses</h4>
+            </div>
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Kode Akses</p>
+                <p className="text-lg font-mono font-bold text-[#006E62] tracking-[0.2em]">{selfAccount.access_code}</p>
+              </div>
+              <div className="p-3 bg-gray-50 rounded border border-gray-100">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Password</p>
+                <p className="text-sm font-mono text-gray-600">********</p>
+                <p className="text-[9px] text-gray-400 italic mt-1">Gunakan tombol Edit Profil untuk mengubah password.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

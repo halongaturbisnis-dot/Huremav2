@@ -146,6 +146,20 @@ export const financeService = {
     return true;
   },
 
+  async getAssignmentByAccountId(accountId: string) {
+    const { data, error } = await supabase
+      .from('finance_salary_assignments')
+      .select(`
+        *,
+        scheme:finance_salary_schemes(*)
+      `)
+      .eq('account_id', accountId)
+      .maybeSingle();
+    
+    if (error) throw error;
+    return data as SalaryAssignmentExtended | null;
+  },
+
   // Reimbursements
   async getReimbursements(filters?: { account_id?: string, month?: number, year?: number }) {
     let query = supabase
