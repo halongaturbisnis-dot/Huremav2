@@ -661,7 +661,7 @@ const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Identitas Lengkap */}
           <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
             <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
@@ -706,43 +706,6 @@ const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile 
               <DetailRow label="Mulai Kerja" value={selfAccount.start_date} />
             </div>
             <DetailRow label="Lokasi Penempatan" value={selfAccount.location?.name} />
-          </div>
-
-          {/* Skema Gaji */}
-          <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
-            <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
-              <FileBadge size={16} className="text-[#006E62]" />
-              <h4 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Detail Skema Gaji</h4>
-            </div>
-            {salaryScheme ? (
-              <div className="space-y-3">
-                <div className="p-3 bg-emerald-50 rounded border border-emerald-100">
-                  <p className="text-[10px] font-bold text-[#006E62] uppercase tracking-widest mb-1">Nama Skema</p>
-                  <p className="text-sm font-bold text-gray-800">{salaryScheme.name}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <DetailRow label="Gaji Pokok" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.basic_salary)} />
-                  <DetailRow label="Total Tunjangan" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
-                    (salaryScheme.position_allowance || 0) + 
-                    (salaryScheme.placement_allowance || 0) + 
-                    (salaryScheme.other_allowance || 0)
-                  )} />
-                </div>
-                <div className="pt-2 border-t border-gray-50">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Rincian Tunjangan</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="text-[10px] text-gray-600">Jabatan: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.position_allowance || 0)}</div>
-                    <div className="text-[10px] text-gray-600">Penempatan: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.placement_allowance || 0)}</div>
-                    <div className="text-[10px] text-gray-600">Lainnya: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.other_allowance || 0)}</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-300">
-                <FileBadge size={32} strokeWidth={1} />
-                <p className="text-[10px] font-bold uppercase tracking-widest mt-2 text-gray-400">Belum Ada Skema Gaji</p>
-              </div>
-            )}
           </div>
 
           {/* Keamanan & Akses */}

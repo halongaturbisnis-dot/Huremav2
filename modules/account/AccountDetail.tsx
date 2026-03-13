@@ -418,40 +418,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
            </div>
         </DetailSection>
 
-        {/* f. Detail Skema Gaji */}
-        <DetailSection icon={FileBadge} title="Detail Skema Gaji">
-           {salaryScheme ? (
-             <div className="space-y-3">
-               <div className="p-2 bg-emerald-50 rounded border border-emerald-100">
-                 <p className="text-[9px] font-bold text-[#006E62] uppercase tracking-widest mb-0.5">Nama Skema</p>
-                 <p className="text-xs font-bold text-gray-800">{salaryScheme.name}</p>
-               </div>
-               <div className="grid grid-cols-2 gap-4">
-                 <DataRow label="Gaji Pokok" value={formatCurrency(salaryScheme.basic_salary)} />
-                 <DataRow label="Total Tunjangan" value={formatCurrency(
-                   (salaryScheme.position_allowance || 0) + 
-                   (salaryScheme.placement_allowance || 0) + 
-                   (salaryScheme.other_allowance || 0)
-                 )} />
-               </div>
-               <div className="pt-2 border-t border-gray-50">
-                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Rincian Tunjangan</p>
-                 <div className="grid grid-cols-2 gap-2">
-                   <div className="text-[9px] text-gray-600 font-medium">Jabatan: {formatCurrency(salaryScheme.position_allowance || 0)}</div>
-                   <div className="text-[9px] text-gray-600 font-medium">Penempatan: {formatCurrency(salaryScheme.placement_allowance || 0)}</div>
-                   <div className="text-[9px] text-gray-600 font-medium">Lainnya: {formatCurrency(salaryScheme.other_allowance || 0)}</div>
-                 </div>
-               </div>
-             </div>
-           ) : (
-             <div className="flex flex-col items-center justify-center py-6 text-gray-300">
-               <FileBadge size={24} strokeWidth={1} />
-               <p className="text-[9px] font-bold uppercase tracking-widest mt-2 text-gray-400">Belum Ada Skema Gaji</p>
-             </div>
-           )}
-        </DetailSection>
-
-        {/* g. Riwayat Kontrak Kerja */}
+        {/* f. Riwayat Kontrak Kerja */}
         <DetailSection 
           icon={FileBadge} 
           title="Riwayat Kontrak Kerja"
@@ -484,7 +451,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
            </div>
         </DetailSection>
 
-        {/* h. Riwayat Karir */}
+        {/* g. Riwayat Karir */}
         <DetailSection 
           icon={Clock} 
           title="Riwayat Karir" 
@@ -522,7 +489,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
           </div>
         </DetailSection>
 
-        {/* i. Daftar Sertifikasi */}
+        {/* h. Daftar Sertifikasi */}
         <DetailSection 
           icon={Award} 
           title="Daftar Sertifikasi" 
@@ -556,7 +523,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
           </div>
         </DetailSection>
 
-        {/* j. Riwayat Kesehatan */}
+        {/* i. Riwayat Kesehatan */}
         <DetailSection 
           icon={Activity} 
           title="Riwayat Kesehatan" 
@@ -590,7 +557,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
           </div>
         </DetailSection>
 
-        {/* k. Status Kedisiplinan */}
+        {/* j. Status Kedisiplinan */}
         <DetailSection icon={ShieldAlert} title="Status Kedisiplinan" onAdd={() => setShowWarningForm(true)} isScrollable>
           <div className="space-y-3">
             {warnings.length === 0 ? <p className="text-[10px] text-gray-400 italic">Belum ada riwayat peringatan.</p> : (
@@ -609,7 +576,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
           </div>
         </DetailSection>
 
-        {/* l. Status Exit / Pemberhentian */}
+        {/* k. Status Exit / Pemberhentian */}
         <DetailSection icon={LogOut} title="Status Exit / Pemberhentian" onAdd={!termination && !isInactive ? () => setShowTerminationForm(true) : undefined}>
           {termination || isInactive ? (
             <div className="space-y-3 p-3 bg-red-50/50 border border-red-100 rounded">
