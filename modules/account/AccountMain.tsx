@@ -681,6 +681,14 @@ const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile 
                <DetailRow label="Pendidikan" value={selfAccount.last_education} />
                <DetailRow label="Jurusan" value={selfAccount.major} />
             </div>
+            <div className="pt-2 border-t border-gray-50">
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-2">Kontak Darurat</p>
+              <div className="grid grid-cols-2 gap-4">
+                <DetailRow label="Nama" value={selfAccount.emergency_contact_name} />
+                <DetailRow label="Hubungan" value={selfAccount.emergency_contact_rel} />
+                <DetailRow label="No HP" value={selfAccount.emergency_contact_phone} />
+              </div>
+            </div>
           </div>
 
           {/* Skema Gaji */}
