@@ -5,7 +5,7 @@ import {
   ArrowLeft, UserCircle, UserCheck, UserX,
   History, FileBadge, Award, Activity, ShieldAlert,
   Download, Upload, Image as ImageIcon,
-  MapPin, Mail, Phone, Edit2, LogOut, Shield
+  MapPin, Mail, Phone, Edit2, LogOut, Shield, Briefcase
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
@@ -661,7 +661,7 @@ const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile 
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Identitas Lengkap */}
           <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
             <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
@@ -691,6 +691,23 @@ const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile 
             </div>
           </div>
 
+          {/* Karier & Penempatan */}
+          <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
+              <Briefcase size={16} className="text-[#006E62]" />
+              <h4 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Karier & Penempatan</h4>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <DetailRow label="Jabatan" value={selfAccount.position} />
+              <DetailRow label="Golongan" value={selfAccount.grade} />
+              <DetailRow label="NIK Internal" value={selfAccount.internal_nik} />
+              <DetailRow label="Tipe Karyawan" value={selfAccount.employee_type} />
+              <DetailRow label="Jadwal" value={selfAccount.schedule_type} />
+              <DetailRow label="Mulai Kerja" value={selfAccount.start_date} />
+            </div>
+            <DetailRow label="Lokasi Penempatan" value={selfAccount.location?.name} />
+          </div>
+
           {/* Skema Gaji */}
           <div className="bg-white border border-gray-100 p-5 rounded-md shadow-sm space-y-4">
             <div className="flex items-center gap-2 border-b border-gray-50 pb-3 mb-2">
@@ -704,20 +721,19 @@ const AccountMain: React.FC<AccountMainProps> = ({ user, setUser, isSelfProfile 
                   <p className="text-sm font-bold text-gray-800">{salaryScheme.name}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <DetailRow label="Gaji Pokok" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.base_salary)} />
+                  <DetailRow label="Gaji Pokok" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.basic_salary)} />
                   <DetailRow label="Total Tunjangan" value={new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(
-                    (salaryScheme.meal_allowance || 0) + 
-                    (salaryScheme.transport_allowance || 0) + 
                     (salaryScheme.position_allowance || 0) + 
-                    (salaryScheme.skill_allowance || 0) + 
-                    (salaryScheme.housing_allowance || 0)
+                    (salaryScheme.placement_allowance || 0) + 
+                    (salaryScheme.other_allowance || 0)
                   )} />
                 </div>
                 <div className="pt-2 border-t border-gray-50">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Tunjangan Harian</p>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Rincian Tunjangan</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="text-[10px] text-gray-600">Makan: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.meal_allowance || 0)}</div>
-                    <div className="text-[10px] text-gray-600">Transport: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.transport_allowance || 0)}</div>
+                    <div className="text-[10px] text-gray-600">Jabatan: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.position_allowance || 0)}</div>
+                    <div className="text-[10px] text-gray-600">Penempatan: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.placement_allowance || 0)}</div>
+                    <div className="text-[10px] text-gray-600">Lainnya: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(salaryScheme.other_allowance || 0)}</div>
                   </div>
                 </div>
               </div>
