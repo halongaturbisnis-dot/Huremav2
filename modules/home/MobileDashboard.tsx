@@ -66,7 +66,16 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({ user, setActiveTab })
   const [viewMode, setViewMode] = useState<'user' | 'admin'>('user');
   const isAdmin = user.role === 'admin' || user.is_hr_admin || user.is_performance_admin || user.is_finance_admin;
 
-  const menuItems = [
+  const menuItems = user.role === 'admin' ? [
+    { id: 'kpi', label: 'Key Performance Indicator', icon: Target, color: 'bg-purple-50 text-purple-600' },
+    { id: 'key_activity', label: 'Key Activities', icon: CheckSquare, color: 'bg-teal-50 text-teal-600' },
+    { id: 'sales_report', label: 'Sales Report', icon: MapPin, color: 'bg-cyan-50 text-cyan-600' },
+    { id: 'rapat', label: 'Rapat', icon: Video, color: 'bg-slate-50 text-slate-600' },
+    { id: 'feedback', label: 'Feedback', icon: MessageSquare, color: 'bg-violet-50 text-violet-600' },
+    { id: 'lapor', label: 'Laporan Pelanggaran', icon: AlertTriangle, color: 'bg-red-50 text-red-600' },
+    { id: 'document', label: 'Dokumen Digital', icon: Files, color: 'bg-blue-50 text-blue-600' },
+    { id: 'master_menu', label: 'Master', icon: Database, color: 'bg-gray-100 text-gray-700' },
+  ] : [
     { id: 'presence', label: 'Presensi Reguler', icon: Fingerprint, color: 'bg-emerald-50 text-[#006E62]' },
     { id: 'dispensation', label: 'Dispensasi Presensi', icon: ShieldCheck, color: 'bg-blue-50 text-blue-600' },
     { id: 'overtime', label: 'Lembur', icon: Timer, color: 'bg-orange-50 text-orange-600' },

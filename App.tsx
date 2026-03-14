@@ -48,7 +48,9 @@ import { AuthUser } from './types';
 const App: React.FC = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report' | 'employee_report'>(
-    (window.innerWidth < 768 && authService.getCurrentUser()?.role !== 'admin') ? 'dashboard' : 'presence'
+    (window.innerWidth < 768 && authService.getCurrentUser()?.role !== 'admin') 
+      ? 'dashboard' 
+      : (authService.getCurrentUser()?.role === 'admin' ? 'master_app' : 'presence')
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -240,7 +242,7 @@ const App: React.FC = () => {
             <button onClick={() => setIsMobileMenuOpen(false)}><X size={24} className="text-gray-400" /></button>
           </div>
           <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-none">
-            <NavItemMobile id="dashboard" icon={LayoutDashboard} label="Beranda" />
+            {user?.role !== 'admin' && <NavItemMobile id="dashboard" icon={LayoutDashboard} label="Beranda" />}
             
             <div className="flex items-center gap-3 px-4 py-3 text-gray-400 mt-2">
               <Database size={20} />
@@ -252,8 +254,12 @@ const App: React.FC = () => {
             <NavItemMobile id="account" icon={Users} label="Akun" indent />
 
             <div className="mt-4">
-              <NavItemMobile id="presence" icon={Fingerprint} label="Presensi Reguler" />
-              <NavItemMobile id="overtime" icon={Timer} label="Presensi Lembur" />
+              {user?.role !== 'admin' && (
+                <>
+                  <NavItemMobile id="presence" icon={Fingerprint} label="Presensi Reguler" />
+                  <NavItemMobile id="overtime" icon={Timer} label="Presensi Lembur" />
+                </>
+              )}
               <NavItemMobile id="kpi" icon={Target} label="KPI Performance" />
               <NavItemMobile id="key_activity" icon={CheckSquare} label="Key Activities" />
               <NavItemMobile id="employee_of_the_period" icon={Trophy} label="Employee of The Period" />
@@ -277,18 +283,22 @@ const App: React.FC = () => {
                 <NavItemMobile id="compensation" icon={Receipt} label="Kompensasi" indent />
               )}
 
-              <NavItemMobile id="leave" icon={Plane} label="Libur Mandiri" />
-              <NavItemMobile id="annual_leave" icon={Calendar} label="Cuti Tahunan" />
-              <NavItemMobile id="permission" icon={ClipboardList} label="Izin" />
-              {(user?.role === 'admin' || user?.gender === 'Perempuan') && (
-                <NavItemMobile id="maternity_leave" icon={Heart} label="Cuti Melahirkan" />
+              {user?.role !== 'admin' && (
+                <>
+                  <NavItemMobile id="leave" icon={Plane} label="Libur Mandiri" />
+                  <NavItemMobile id="annual_leave" icon={Calendar} label="Cuti Tahunan" />
+                  <NavItemMobile id="permission" icon={ClipboardList} label="Izin" />
+                  {user?.gender === 'Perempuan' && (
+                    <NavItemMobile id="maternity_leave" icon={Heart} label="Cuti Melahirkan" />
+                  )}
+                </>
               )}
               <NavItemMobile id="submission" icon={ClipboardCheck} label="Pengajuan" />
               <NavItemMobile id="document" icon={Files} label="Dokumen Digital" />
               <NavItemMobile id="employee_report" icon={BarChart3} label="Laporan Karyawan" />
               <NavItemMobile id="attendance_report" icon={BarChart3} label="Laporan Kehadiran" />
               <NavItemMobile id="finance_report" icon={Wallet} label="Laporan Finance" />
-              <NavItemMobile id="settings" icon={Settings} label="Pengaturan" />
+              {user?.role !== 'admin' && <NavItemMobile id="settings" icon={Settings} label="Pengaturan" />}
             </div>
           </nav>
         </div>

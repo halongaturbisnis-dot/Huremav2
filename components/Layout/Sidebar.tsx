@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
       </div>
       
       <nav className="flex-1 px-3 overflow-y-auto scrollbar-none">
-        <NavItem id="dashboard" icon={LayoutDashboard} label="Beranda" />
+        {user?.role !== 'admin' && <NavItem id="dashboard" icon={LayoutDashboard} label="Beranda" />}
         
         {/* Master Menu Group */}
         {(user?.role === 'admin' || user?.is_hr_admin) && (
@@ -223,7 +223,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
                     <NavItem id="payroll" icon={Receipt} label="Payroll" indent />
                   </>
                 )}
-                <NavItem id="my_payslip" icon={Receipt} label="Slip Gaji Saya" indent />
+                {user?.role !== 'admin' && <NavItem id="my_payslip" icon={Receipt} label="Slip Gaji Saya" indent />}
                 <NavItem id="reimbursement" icon={Receipt} label="Reimburse" indent badge={(user?.role === 'admin' || user?.is_finance_admin) ? unreadReimbursements : undefined} />
                 <NavItem id="early_salary" icon={Receipt} label="Ambil Gaji Awal" indent />
                 {(user?.role === 'admin' || user?.is_finance_admin) && (
@@ -295,9 +295,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
           
           {(isPresenceOpen || isCollapsed) && (
             <div className={`mt-1 overflow-hidden transition-all duration-300 ${isCollapsed ? '' : 'max-h-96'}`}>
-              <NavItem id="presence" icon={Fingerprint} label="Presensi Reguler" indent />
-              <NavItem id="overtime" icon={Timer} label="Presensi Lembur" indent />
-              <NavItem id="dispensation" icon={ClipboardList} label="Dispensasi Presensi" indent />
+              {user?.role !== 'admin' && (
+                <>
+                  <NavItem id="presence" icon={Fingerprint} label="Presensi Reguler" indent />
+                  <NavItem id="overtime" icon={Timer} label="Presensi Lembur" indent />
+                  <NavItem id="dispensation" icon={ClipboardList} label="Dispensasi Presensi" indent />
+                </>
+              )}
               {(user?.role === 'admin' || user?.is_hr_admin) && (
                 <NavItem id="admin_dispensation" icon={ClipboardList} label="Antrean Dispensasi" indent badge={unreadDispensations} />
               )}
@@ -306,15 +310,19 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isCollapsed,
         </div>
 
         <div className="mt-4">
-          <NavItem id="leave" icon={Plane} label="Libur Mandiri" />
-          <NavItem id="annual_leave" icon={Calendar} label="Cuti Tahunan" />
-          <NavItem id="permission" icon={ClipboardList} label="Izin" />
-          {(user?.role === 'admin' || user?.gender === 'Perempuan') && (
-            <NavItem id="maternity_leave" icon={Heart} label="Cuti Melahirkan" />
+          {user?.role !== 'admin' && (
+            <>
+              <NavItem id="leave" icon={Plane} label="Libur Mandiri" />
+              <NavItem id="annual_leave" icon={Calendar} label="Cuti Tahunan" />
+              <NavItem id="permission" icon={ClipboardList} label="Izin" />
+              {user?.gender === 'Perempuan' && (
+                <NavItem id="maternity_leave" icon={Heart} label="Cuti Melahirkan" />
+              )}
+            </>
           )}
           <NavItem id="submission" icon={ClipboardCheck} label="Pengajuan" />
           <NavItem id="document" icon={Files} label="Dokumen Digital" />
-          <NavItem id="settings" icon={Settings} label="Pengaturan" />
+          {user?.role !== 'admin' && <NavItem id="settings" icon={Settings} label="Pengaturan" />}
         </div>
       </nav>
 

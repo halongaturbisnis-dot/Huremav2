@@ -134,10 +134,22 @@ const RapatMain: React.FC = () => {
     }
   };
 
-  const filteredMeetings = meetings.filter(m => 
-    m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMeetings = meetings.filter(m => {
+    const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         m.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Superadmin (SP) can see all meetings
+    if (user?.access_code?.startsWith('SP')) {
+      return matchesSearch;
+    }
+
+    // Others only see meetings where they are participants, notulens, or the creator
+    const isInvolved = m.participant_ids.includes(user?.id || '') || 
+                      m.notulen_ids.includes(user?.id || '') || 
+                      m.created_by === user?.id;
+    
+    return matchesSearch && isInvolved;
+  });
 
   const canManageSession = (meeting: Meeting) => {
     return user && (meeting.notulen_ids.includes(user.id) || user.role === 'admin');
