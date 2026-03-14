@@ -43,12 +43,23 @@ const DailyMonitoring: React.FC = () => {
     );
   };
 
+  const formatTime = (isoString: string | null) => {
+    if (!isoString) return '-';
+    if (isoString.includes(':') && isoString.length <= 8) return isoString.substring(0, 5);
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+    } catch (e) {
+      return '-';
+    }
+  };
+
   const renderList = (list: any[], type: string) => {
     const filtered = getFilteredList(list);
 
     if (filtered.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-200">
           <Users size={48} strokeWidth={1} className="mb-4 opacity-20" />
           <p className="text-sm font-medium">Tidak ada data ditemukan</p>
         </div>
@@ -56,81 +67,141 @@ const DailyMonitoring: React.FC = () => {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((item) => (
-          <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 shrink-0 overflow-hidden border border-gray-100">
-                {item.photo_url ? (
-                  <img src={item.photo_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <Users size={24} />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-gray-800 truncate">{item.full_name}</h4>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.internal_nik}</p>
-                <p className="text-[11px] text-gray-500 mt-1 truncate">{item.position} • {item.grade}</p>
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Karyawan</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Jabatan</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Jadwal</th>
                 
-                {/* Status Specific Info */}
-                {type === 'present' && item.attendance && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded uppercase">
-                      Masuk: {item.attendance.check_in_time?.substring(0, 5)}
-                    </span>
-                    {item.attendance.check_out_time && (
-                      <span className="px-2 py-0.5 bg-gray-50 text-gray-500 text-[10px] font-bold rounded uppercase">
-                        Pulang: {item.attendance.check_out_time?.substring(0, 5)}
-                      </span>
-                    )}
-                  </div>
+                {type === 'present' && (
+                  <>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Masuk (Jadwal)</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pulang (Jadwal)</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Presensi Masuk</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Presensi Pulang</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                  </>
                 )}
 
-                {type === 'overtime' && item.overtime && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.overtime.status === 'completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
-                      {item.overtime.status === 'completed' ? 'Selesai Lembur' : 'Sedang Lembur'}
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-medium">
-                      {item.overtime.check_in_time?.substring(0, 5)} - {item.overtime.check_out_time?.substring(0, 5) || '...'}
-                    </span>
-                  </div>
+                {type === 'overtime' && (
+                  <>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mulai Lembur</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Selesai Lembur</th>
+                    <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                  </>
                 )}
 
-                {type === 'leave' && (
-                  <div className="mt-2">
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.annualLeave ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
-                      {item.annualLeave ? 'Cuti Tahunan' : 'Cuti Melahirkan'}
-                    </span>
-                  </div>
+                {(type === 'leave' || type === 'permission' || type === 'holiday') && (
+                  <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Keterangan / Alasan</th>
                 )}
 
-                {type === 'permission' && (
-                  <div className="mt-2">
-                    <span className="px-2 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-bold rounded uppercase">
-                      Izin: {item.permission.permission_type}
+                <th className="px-4 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden shrink-0">
+                        {item.photo_url ? (
+                          <img src={item.photo_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Users size={16} />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-800 truncate">{item.full_name}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{item.internal_nik}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-xs text-gray-600 font-medium">{item.position}</p>
+                    <p className="text-[10px] text-gray-400 uppercase">{item.grade}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase">
+                      {item.schedule_name}
                     </span>
-                  </div>
-                )}
+                  </td>
 
-                {type === 'holiday' && (
-                  <div className="mt-2">
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.leaveRequest ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
-                      {item.leaveRequest ? 'Libur Mandiri' : 'Hari Libur'}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <button 
-                onClick={() => setSelectedAccountId(item.id)}
-                className="p-2 hover:bg-gray-50 text-gray-400 hover:text-[#006E62] transition-colors rounded-lg"
-                title="Lihat Detail"
-              >
-                <Eye size={18} />
-              </button>
-            </div>
-          </div>
-        ))}
+                  {type === 'present' && (
+                    <>
+                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">{formatTime(item.today_rule?.check_in_time)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">{formatTime(item.today_rule?.check_out_time)}</td>
+                      <td className="px-4 py-3 text-xs text-emerald-600 font-bold font-mono">{formatTime(item.attendance?.check_in)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">{formatTime(item.attendance?.check_out)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.attendance?.check_out ? 'bg-gray-100 text-gray-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                          {item.attendance?.check_out ? 'Sudah Pulang' : 'Belum Pulang'}
+                        </span>
+                      </td>
+                    </>
+                  )}
+
+                  {type === 'overtime' && (
+                    <>
+                      <td className="px-4 py-3 text-xs text-orange-600 font-bold font-mono">{formatTime(item.overtime?.check_in)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 font-mono">{formatTime(item.overtime?.check_out)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.overtime?.check_out ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                          {item.overtime?.check_out ? 'Selesai' : 'Berjalan'}
+                        </span>
+                      </td>
+                    </>
+                  )}
+
+                  {type === 'leave' && (
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        <span className={`w-fit px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.annualLeave ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                          {item.annualLeave ? 'Cuti Tahunan' : 'Cuti Melahirkan'}
+                        </span>
+                        <p className="text-xs text-gray-500 italic">"{item.annualLeave?.description || item.maternityLeave?.description || '-'}"</p>
+                      </div>
+                    </td>
+                  )}
+
+                  {type === 'permission' && (
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="w-fit px-2 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-bold rounded uppercase">
+                          Izin: {item.permission?.permission_type}
+                        </span>
+                        <p className="text-xs text-gray-500 italic">"{item.permission?.description || '-'}"</p>
+                      </div>
+                    </td>
+                  )}
+
+                  {type === 'holiday' && (
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1">
+                        <span className={`w-fit px-2 py-0.5 text-[10px] font-bold rounded uppercase ${item.leaveRequest ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
+                          {item.leaveRequest ? 'Libur Mandiri' : 'Hari Libur'}
+                        </span>
+                        <p className="text-xs text-gray-500 italic">"{item.leaveRequest?.description || 'Libur sesuai jadwal kerja'}"</p>
+                      </div>
+                    </td>
+                  )}
+
+                  <td className="px-4 py-3 text-center">
+                    <button 
+                      onClick={() => setSelectedAccountId(item.id)}
+                      className="p-2 hover:bg-gray-100 text-gray-400 hover:text-[#006E62] transition-colors rounded-lg"
+                      title="Lihat Detail"
+                    >
+                      <Eye size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };

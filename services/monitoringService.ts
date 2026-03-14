@@ -134,33 +134,40 @@ export const monitoringService = {
 
       const isHoliday = isWeekendOrHolidayRule || isSpecialHoliday;
 
+      // Attach schedule info for UI
+      const accWithInfo = { 
+        ...acc, 
+        schedule_name: schedule?.name || acc.schedule_type,
+        today_rule: rule 
+      };
+
       // PRIORITY HIERARCHY: One user = One primary category
       // 1. Present (Check-in)
       if (attendance) {
-        results.present.push({ ...acc, attendance });
+        results.present.push({ ...accWithInfo, attendance });
       } 
       // 2. On Leave / Permission / Maternity (Approved)
       else if (annualLeave) {
-        results.onAnnualLeave.push({ ...acc, annualLeave });
+        results.onAnnualLeave.push({ ...accWithInfo, annualLeave });
       } else if (maternityLeave) {
-        results.onMaternityLeave.push({ ...acc, maternityLeave });
+        results.onMaternityLeave.push({ ...accWithInfo, maternityLeave });
       } else if (permission) {
-        results.onPermission.push({ ...acc, permission });
+        results.onPermission.push({ ...accWithInfo, permission });
       } 
       // 3. Holiday (Mandiri / Special / Weekend)
       else if (leaveRequest) {
-        results.onLeaveMandiri.push({ ...acc, leaveRequest });
+        results.onLeaveMandiri.push({ ...accWithInfo, leaveRequest });
       } else if (isHoliday) {
-        results.onHoliday.push(acc);
+        results.onHoliday.push(accWithInfo);
       } 
       // 4. Not Present Yet (Must work but no check-in)
       else {
-        results.notPresentYet.push(acc);
+        results.notPresentYet.push(accWithInfo);
       }
 
       // Overtime is a secondary status (can be present AND on overtime)
       if (overtime) {
-        results.onOvertime.push({ ...acc, overtime });
+        results.onOvertime.push({ ...accWithInfo, overtime });
       }
     });
 
