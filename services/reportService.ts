@@ -140,30 +140,81 @@ export const reportService = {
   },
 
   async getAttendanceReportSummary(startDate: string, endDate: string): Promise<AttendanceSummary[]> {
-    const { data: accounts } = await supabase.from('accounts').select('id, full_name, internal_nik');
+    const [
+      { data: accounts },
+      { data: attendances },
+      { data: leaves },
+      { data: annualLeaves },
+      { data: permissions },
+      { data: maternityLeaves },
+      { data: dispensations },
+      { data: holidays }
+    ] = await Promise.all([
+      supabase.from('accounts').select('id, full_name, internal_nik'),
+      supabase.from('attendances').select('*').gte('check_in', startDate).lte('check_in', endDate),
+      supabase.from('leave_requests').select('*').eq('status', 'approved').gte('start_date', startDate).lte('end_date', endDate),
+      supabase.from('annual_leave_requests').select('*').eq('status', 'approved').gte('start_date', startDate).lte('end_date', endDate),
+      supabase.from('permission_requests').select('*').eq('status', 'approved').gte('start_date', startDate).lte('end_date', endDate),
+      supabase.from('maternity_leave_requests').select('*').eq('status', 'approved').gte('start_date', startDate).lte('end_date', endDate),
+      supabase.from('dispensation_requests').select('*').eq('status', 'APPROVED').gte('date', startDate).lte('date', endDate),
+      supabase.from('holidays').select('*').gte('date', startDate).lte('date', endDate)
+    ]);
+
     if (!accounts) return [];
-    
-    return accounts.map(acc => ({
-      accountId: acc.id,
-      fullName: acc.full_name,
-      nik: acc.internal_nik,
-      totalDays: 0,
-      present: 0,
-      late: 0,
-      lateMinutes: 0,
-      earlyDeparture: 0,
-      earlyDepartureMinutes: 0,
-      absent: 0,
-      leave: 0,
-      maternityLeave: 0,
-      permission: 0,
-      holiday: 0,
-      specialHoliday: 0,
-      noClockOut: 0,
-      dispensationCount: 0,
-      attendanceRate: 0,
-      dailyDetails: []
-    }));
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    return accounts.map(acc => {
+      const accAttendances = (attendances || []).filter(a => a.account_id === acc.id);
+      const accLeaves = (leaves || []).filter(l => l.account_id === acc.id);
+      const accAnnualLeaves = (annualLeaves || []).filter(l => l.account_id === acc.id);
+      const accPermissions = (permissions || []).filter(p => p.account_id === acc.id);
+      const accMaternity = (maternityLeaves || []).filter(m => m.account_id === acc.id);
+      const accDispensations = (dispensations || []).filter(d => d.account_id === acc.id);
+
+      const present = accAttendances.length;
+      const late = accAttendances.filter(a => a.late_minutes > 0).length;
+      const lateMinutes = accAttendances.reduce((sum, a) => sum + (a.late_minutes || 0), 0);
+      const earlyDeparture = accAttendances.filter(a => a.early_leave_minutes > 0).length;
+      const earlyDepartureMinutes = accAttendances.reduce((sum, a) => sum + (a.early_leave_minutes || 0), 0);
+      const noClockOut = accAttendances.filter(a => !a.check_out).length;
+      
+      const leave = accLeaves.length + accAnnualLeaves.length;
+      const maternityLeave = accMaternity.length;
+      const permission = accPermissions.length;
+      const dispensationCount = accDispensations.length;
+
+      // Simple absent calculation: total days - (present + leave + maternity + permission + holidays)
+      // Note: This is a simplification and might need refinement based on actual work days
+      const holidayCount = (holidays || []).length;
+      const absent = Math.max(0, totalDays - (present + leave + maternityLeave + permission + holidayCount));
+
+      const attendanceRate = totalDays > 0 ? ((present + leave + maternityLeave + permission) / totalDays) * 100 : 0;
+
+      return {
+        accountId: acc.id,
+        fullName: acc.full_name,
+        nik: acc.internal_nik,
+        totalDays,
+        present,
+        late,
+        lateMinutes,
+        earlyDeparture,
+        earlyDepartureMinutes,
+        absent,
+        leave,
+        maternityLeave,
+        permission,
+        holiday: holidayCount,
+        specialHoliday: 0,
+        noClockOut,
+        dispensationCount,
+        attendanceRate,
+        dailyDetails: [] // This would need a day-by-day map if required by heatmap
+      };
+    });
   },
 
   async getAttendanceReport(startDate?: string, endDate?: string) {
@@ -248,36 +299,71 @@ export const reportService = {
   },
 
   async getLeaveReport(startDate?: string, endDate?: string): Promise<LeaveSummary[]> {
-    const { data: accounts } = await supabase.from('accounts').select('id, full_name, internal_nik');
+    const [
+      { data: accounts },
+      { data: leaves },
+      { data: annualLeaves },
+      { data: maternityLeaves },
+      { data: permissions }
+    ] = await Promise.all([
+      supabase.from('accounts').select('id, full_name, internal_nik, leave_quota'),
+      supabase.from('leave_requests').select('*').eq('status', 'approved'),
+      supabase.from('annual_leave_requests').select('*').eq('status', 'approved'),
+      supabase.from('maternity_leave_requests').select('*').eq('status', 'approved'),
+      supabase.from('permission_requests').select('*').eq('status', 'approved')
+    ]);
+
     if (!accounts) return [];
     
-    // This should ideally calculate the summary. For now, returning a skeleton to fix lint.
-    return accounts.map(acc => ({
-      accountId: acc.id,
-      fullName: acc.full_name,
-      nik: acc.internal_nik,
-      totalQuota: 12,
-      usedQuota: 0,
-      remainingQuota: 12,
-      carryOverQuota: 0,
-      maternityQuota: 90,
-      maternityUsed: 0,
-      permissionCount: 0
-    }));
+    return accounts.map(acc => {
+      const usedQuota = (leaves || []).filter(l => l.account_id === acc.id).length + 
+                        (annualLeaves || []).filter(l => l.account_id === acc.id).length;
+      const maternityUsed = (maternityLeaves || []).filter(m => m.account_id === acc.id).length;
+      const permissionCount = (permissions || []).filter(p => p.account_id === acc.id).length;
+
+      return {
+        accountId: acc.id,
+        fullName: acc.full_name,
+        nik: acc.internal_nik,
+        totalQuota: acc.leave_quota || 12,
+        usedQuota,
+        remainingQuota: (acc.leave_quota || 12) - usedQuota,
+        carryOverQuota: 0,
+        maternityQuota: 90,
+        maternityUsed,
+        permissionCount
+      };
+    });
   },
 
   async getOvertimeReport(startDate?: string, endDate?: string): Promise<OvertimeSummary[]> {
-    const { data: accounts } = await supabase.from('accounts').select('id, full_name, internal_nik');
+    const [
+      { data: accounts },
+      { data: overtimes }
+    ] = await Promise.all([
+      supabase.from('accounts').select('id, full_name, internal_nik'),
+      supabase.from('overtimes').select('*').gte('check_in', startDate || '2000-01-01').lte('check_in', endDate || '2100-01-01')
+    ]);
+
     if (!accounts) return [];
 
-    return accounts.map(acc => ({
-      accountId: acc.id,
-      fullName: acc.full_name,
-      nik: acc.internal_nik,
-      totalOvertimeMinutes: 0,
-      totalOvertimeHours: 0,
-      overtimeCount: 0,
-      estimatedCost: 0
-    }));
+    return accounts.map(acc => {
+      const accOvertimes = (overtimes || []).filter(o => o.account_id === acc.id);
+      const totalMinutes = accOvertimes.reduce((sum, o) => {
+        if (!o.check_in || !o.check_out) return sum;
+        const diff = new Date(o.check_out).getTime() - new Date(o.check_in).getTime();
+        return sum + Math.floor(diff / (1000 * 60));
+      }, 0);
+
+      return {
+        accountId: acc.id,
+        fullName: acc.full_name,
+        nik: acc.internal_nik,
+        totalOvertimeMinutes: totalMinutes,
+        totalOvertimeHours: Number((totalMinutes / 60).toFixed(2)),
+        overtimeCount: accOvertimes.length,
+        estimatedCost: 0 // Cost calculation would need payroll settings
+      };
+    });
   }
 };
