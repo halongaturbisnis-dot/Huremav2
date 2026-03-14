@@ -22,9 +22,10 @@ interface AccountDetailProps {
   onClose: () => void;
   onEdit: (account: Account) => void;
   onDelete: (id: string) => void;
+  isReadOnly?: boolean;
 }
 
-const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDelete }) => {
+const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDelete, isReadOnly = false }) => {
   const [account, setAccount] = useState<Account | null>(null);
   const [careerLogs, setCareerLogs] = useState<CareerLog[]>([]);
   const [healthLogs, setHealthLogs] = useState<HealthLog[]>([]);
@@ -260,7 +261,7 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
           <Icon size={16} className="text-[#006E62]" />
           <h4 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">{title}</h4>
         </div>
-        {onAdd && (
+        {onAdd && !isReadOnly && (
           <button onClick={onAdd} className="p-1 hover:bg-gray-50 text-[#006E62] rounded transition-colors">
             <Plus size={16} />
           </button>
@@ -338,8 +339,12 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
         </div>
 
         <div className="flex gap-2">
-           <button onClick={() => onEdit(account)} className="p-2 border border-gray-100 rounded text-gray-400 hover:text-[#006E62] transition-colors"><Edit2 size={16} /></button>
-           <button onClick={() => onDelete(account.id)} className="p-2 border border-gray-100 rounded text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+           {!isReadOnly && (
+             <>
+               <button onClick={() => onEdit(account)} className="p-2 border border-gray-100 rounded text-gray-400 hover:text-[#006E62] transition-colors"><Edit2 size={16} /></button>
+               <button onClick={() => onDelete(account.id)} className="p-2 border border-gray-100 rounded text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+             </>
+           )}
         </div>
       </div>
 
@@ -373,10 +378,12 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
         {/* c. Presensi & Akses */}
         <DetailSection icon={Shield} title="Presensi & Akses">
            <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-[11px] font-bold">
-                <span className="text-gray-500">KODE AKSES</span>
-                <span className="text-[#006E62] tracking-widest">{account.access_code}</span>
-              </div>
+              {!isReadOnly && (
+                <div className="flex items-center justify-between p-2 bg-gray-50 rounded text-[11px] font-bold">
+                  <span className="text-gray-500">KODE AKSES</span>
+                  <span className="text-[#006E62] tracking-widest">{account.access_code}</span>
+                </div>
+              )}
               <p className="text-[9px] font-bold text-gray-400 uppercase mt-2">Kebijakan Radius Presensi</p>
               <div className="grid grid-cols-2 gap-2">
                  {[
@@ -442,8 +449,12 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
                     </div>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setShowContractForm({ show: true, data: c })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
-                    <button onClick={() => handleDeleteContract(c.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                    {!isReadOnly && (
+                      <>
+                        <button onClick={() => setShowContractForm({ show: true, data: c })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
+                        <button onClick={() => handleDeleteContract(c.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))
@@ -479,8 +490,12 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
                       {log.notes && <p className="text-[9px] text-gray-400 italic mt-1 line-clamp-1">"{log.notes}"</p>}
                     </div>
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => setShowLogForm({ type: 'career', data: log, isEdit: true })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
-                      <button onClick={() => handleDeleteLog(log.id, 'career')} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                      {!isReadOnly && (
+                        <>
+                          <button onClick={() => setShowLogForm({ type: 'career', data: log, isEdit: true })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
+                          <button onClick={() => handleDeleteLog(log.id, 'career')} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -514,8 +529,12 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
                     </div>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setShowCertForm({ show: true, data: cert })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
-                    <button onClick={() => handleDeleteCert(cert.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                    {!isReadOnly && (
+                      <>
+                        <button onClick={() => setShowCertForm({ show: true, data: cert })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
+                        <button onClick={() => handleDeleteCert(cert.id)} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))
@@ -548,8 +567,12 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
                     </div>
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setShowLogForm({ type: 'health', data: log, isEdit: true })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
-                    <button onClick={() => handleDeleteLog(log.id, 'health')} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                    {!isReadOnly && (
+                      <>
+                        <button onClick={() => setShowLogForm({ type: 'health', data: log, isEdit: true })} className="text-gray-300 hover:text-[#006E62]"><Edit2 size={12} /></button>
+                        <button onClick={() => handleDeleteLog(log.id, 'health')} className="text-gray-300 hover:text-red-500"><Trash2 size={12} /></button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))
@@ -569,7 +592,9 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
                     <p className="text-[10px] text-gray-600 mt-1 line-clamp-1">{w.reason}</p>
                     {w.file_id && <button onClick={() => setPreviewMedia({ url: googleDriveService.getFileUrl(w.file_id!).replace('=s1600', '=s0'), title: `Surat ${w.warning_type}`, type: 'image' })} className="text-[9px] font-bold text-[#006E62] mt-1 inline-block">LIHAT SURAT</button>}
                   </div>
-                  <button onClick={() => handleDeleteWarning(w.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
+                  {!isReadOnly && (
+                    <button onClick={() => handleDeleteWarning(w.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={12} /></button>
+                  )}
                 </div>
               ))
             )}
@@ -592,25 +617,27 @@ const AccountDetail: React.FC<AccountDetailProps> = ({ id, onClose, onEdit, onDe
                 <DataRow label="Biaya Penalti" value={formatCurrency(termination.penalty_amount)} />
               )}
               {termination?.file_id && <DataRow label="Surat Pemberhentian" value={termination.file_id} isFile />}
-              <button 
-                onClick={async () => {
-                  const res = await Swal.fire({ title: 'Batalkan Pemberhentian?', text: 'Akun akan diaktifkan kembali.', icon: 'question', showCancelButton: true, confirmButtonColor: '#006E62' });
-                  if (res.isConfirmed) {
-                    setIsSaving(true);
-                    if (termination) {
-                      await disciplineService.deleteTermination(termination.id, id);
-                    } else {
-                      await accountService.update(id, { end_date: null });
+              {!isReadOnly && (
+                <button 
+                  onClick={async () => {
+                    const res = await Swal.fire({ title: 'Batalkan Pemberhentian?', text: 'Akun akan diaktifkan kembali.', icon: 'question', showCancelButton: true, confirmButtonColor: '#006E62' });
+                    if (res.isConfirmed) {
+                      setIsSaving(true);
+                      if (termination) {
+                        await disciplineService.deleteTermination(termination.id, id);
+                      } else {
+                        await accountService.update(id, { end_date: null });
+                      }
+                      setTermination(null);
+                      setAccount(prev => prev ? { ...prev, end_date: null } : null);
+                      setIsSaving(false);
                     }
-                    setTermination(null);
-                    setAccount(prev => prev ? { ...prev, end_date: null } : null);
-                    setIsSaving(false);
-                  }
-                }}
-                className="w-full mt-2 py-1.5 text-[10px] font-bold uppercase text-red-600 border border-red-200 rounded hover:bg-white transition-colors"
-              >
-                Batalkan Exit / Aktifkan Kembali
-              </button>
+                  }}
+                  className="w-full mt-2 py-1.5 text-[10px] font-bold uppercase text-red-600 border border-red-200 rounded hover:bg-white transition-colors"
+                >
+                  Batalkan Exit / Aktifkan Kembali
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-6 text-gray-300">

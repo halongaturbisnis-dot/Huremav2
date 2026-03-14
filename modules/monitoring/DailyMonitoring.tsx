@@ -7,6 +7,7 @@ import {
   Baby
 } from 'lucide-react';
 import { monitoringService } from '../../services/monitoringService';
+import { googleDriveService } from '../../services/googleDriveService';
 import AccountDetail from '../account/AccountDetail';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 
@@ -107,8 +108,8 @@ const DailyMonitoring: React.FC = () => {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden shrink-0">
-                        {item.photo_url ? (
-                          <img src={item.photo_url} alt="" className="w-full h-full object-cover" />
+                        {item.photo_google_id ? (
+                          <img src={googleDriveService.getFileUrl(item.photo_google_id)} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <Users size={16} />
                         )}
@@ -299,6 +300,7 @@ const DailyMonitoring: React.FC = () => {
                 onClose={() => setSelectedAccountId(null)}
                 onEdit={() => {}} // Disable edit from here
                 onDelete={() => {}} // Disable delete from here
+                isReadOnly={true}
               />
             </div>
           </div>
