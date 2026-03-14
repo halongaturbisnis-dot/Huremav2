@@ -21,6 +21,13 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     try {
       const user = await authService.login(accessCode, password);
+      
+      // Check for desktop access restriction
+      if (window.innerWidth >= 768 && user.role !== 'admin') {
+        authService.logout(); // Clear session if it was set
+        throw new Error('Akses Desktop hanya untuk Admin. Silakan gunakan aplikasi mobile.');
+      }
+
       onLoginSuccess(user);
     } catch (err: any) {
       setError(err.message || 'Gagal masuk. Periksa kembali kredensial Anda.');

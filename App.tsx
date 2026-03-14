@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { X, LayoutDashboard, Users, MapPin, CalendarClock, Files, Settings, Database, Fingerprint, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, BarChart3, Wallet } from 'lucide-react';
+import { X, LayoutDashboard, Users, MapPin, CalendarClock, Files, Settings, Database, Fingerprint, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, BarChart3, Wallet, AlertCircle } from 'lucide-react';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import MobileLayout from './components/Layout/MobileLayout';
@@ -214,6 +214,30 @@ const App: React.FC = () => {
           )}
         </Suspense>
       </MobileLayout>
+    );
+  }
+
+  // Desktop Non-Admin Restriction
+  if (!isMobile && user.role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="text-center max-w-md animate-in fade-in zoom-in duration-500">
+          <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-500 mx-auto mb-8 shadow-xl shadow-rose-500/10">
+            <AlertCircle size={40} />
+          </div>
+          <h1 className="text-2xl font-black text-gray-800 uppercase tracking-tighter mb-3">Akses Terbatas</h1>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-relaxed mb-8">
+            Halaman Dashboard Desktop hanya dapat diakses oleh Admin.<br />
+            Silakan gunakan aplikasi mobile untuk akses karyawan.
+          </p>
+          <button 
+            onClick={() => authService.logout()}
+            className="px-10 py-4 bg-[#006E62] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#005a50] shadow-lg shadow-[#006E62]/20 active:scale-95 transition-all"
+          >
+            Keluar Sesi
+          </button>
+        </div>
+      </div>
     );
   }
 
