@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { X, LayoutDashboard, Users, MapPin, CalendarClock, Files, Settings, Database, Fingerprint, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, BarChart3, Wallet, AlertCircle } from 'lucide-react';
+import { X, LayoutDashboard, Users, MapPin, CalendarClock, Files, Settings, Database, Fingerprint, Timer, ClipboardCheck, Plane, Calendar, ClipboardList, Heart, Target, CheckSquare, AlertTriangle, Video, Megaphone, Receipt, Trophy, BarChart3, Wallet, AlertCircle, Activity } from 'lucide-react';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import MobileLayout from './components/Layout/MobileLayout';
@@ -40,6 +40,7 @@ const ReportMainModule = lazy(() => import('./modules/report/ReportMainModule'))
 const FinanceReportMain = lazy(() => import('./modules/report/FinanceReportMain'));
 const MasterMain = lazy(() => import('./modules/settings/MasterMain'));
 const AdminSettingsModule = lazy(() => import('./modules/settings/AdminSettingsModule'));
+const DailyMonitoring = lazy(() => import('./modules/monitoring/DailyMonitoring'));
 const Login = lazy(() => import('./modules/auth/Login'));
 
 import { authService } from './services/authService';
@@ -47,7 +48,7 @@ import { AuthUser } from './types';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report' | 'employee_report'>(
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'location' | 'account' | 'schedule' | 'document' | 'settings' | 'presence' | 'overtime' | 'submission' | 'leave' | 'annual_leave' | 'permission' | 'maternity_leave' | 'master_app' | 'admin_settings' | 'kpi' | 'key_activity' | 'sales_report' | 'feedback' | 'lapor' | 'rapat' | 'pengumuman' | 'salary_scheme' | 'salary_adjustment' | 'payroll' | 'my_payslip' | 'reimbursement' | 'early_salary' | 'compensation' | 'employee_of_the_period' | 'dispensation' | 'admin_dispensation' | 'attendance_report' | 'finance_report' | 'employee_report' | 'daily_monitoring'>(
     (window.innerWidth < 768 && authService.getCurrentUser()?.role !== 'admin') 
       ? 'dashboard' 
       : (authService.getCurrentUser()?.role === 'admin' ? 'master_app' : 'presence')
@@ -317,6 +318,9 @@ const App: React.FC = () => {
                   )}
                 </>
               )}
+              {(user?.role === 'admin' || user?.is_hr_admin) && (
+                <NavItemMobile id="daily_monitoring" icon={Activity} label="Pemantauan Harian" />
+              )}
               <NavItemMobile id="submission" icon={ClipboardCheck} label="Pengajuan" />
               <NavItemMobile id="document" icon={Files} label="Dokumen Digital" />
               <NavItemMobile id="employee_report" icon={BarChart3} label="Laporan Karyawan" />
@@ -407,6 +411,8 @@ const App: React.FC = () => {
               <MasterMain />
             ) : activeTab === 'admin_settings' ? (
               <AdminSettingsModule />
+            ) : activeTab === 'daily_monitoring' ? (
+              <DailyMonitoring />
             ) : (
               <div className="flex flex-col items-center justify-center h-64 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
                 <p className="font-medium text-sm">Modul "{activeTab}" sedang dalam pengembangan.</p>

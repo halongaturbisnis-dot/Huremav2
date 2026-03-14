@@ -4,7 +4,7 @@ import {
   Fingerprint, ShieldCheck, Timer, Umbrella, Calendar, Heart, 
   ClipboardList, Target, CheckSquare, MapPin, Video, MessageSquare, 
   AlertTriangle, Receipt, Wallet, UserCircle, Files, Database,
-  Users, CalendarClock, BarChart3, Settings, ArrowLeft
+  Users, CalendarClock, BarChart3, Settings, ArrowLeft, Activity
 } from 'lucide-react';
 import { AuthUser, Attendance, Overtime } from '../../types';
 import { presenceService } from '../../services/presenceService';
@@ -105,6 +105,7 @@ const MobileDashboard: React.FC<MobileDashboardProps> = ({ user, setActiveTab })
     { id: 'salary_adjustment', label: 'Kustom Gaji', icon: Receipt, color: 'bg-orange-50 text-orange-600' },
     { id: 'compensation', label: 'Kompensasi', icon: Receipt, color: 'bg-rose-50 text-rose-600' },
     { id: 'admin_dispensation', label: 'Verif Dispensasi', icon: ShieldCheck, color: 'bg-cyan-50 text-cyan-600' },
+    { id: 'daily_monitoring', label: 'Pemantauan Harian', icon: Activity, color: 'bg-rose-50 text-rose-600' },
     { id: 'attendance_report', label: 'Laporan Kehadiran', icon: BarChart3, color: 'bg-slate-50 text-slate-600' },
     { id: 'finance_report', label: 'Laporan Finance', icon: Wallet, color: 'bg-green-50 text-green-600' },
     { id: 'admin_settings', label: 'Pengaturan Admin', icon: Settings, color: 'bg-gray-50 text-gray-600' },
