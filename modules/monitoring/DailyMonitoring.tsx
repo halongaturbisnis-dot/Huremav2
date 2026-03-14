@@ -174,9 +174,9 @@ const DailyMonitoring: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <TabButton id="present" label="Sudah Masuk" icon={UserCheck} count={data?.present?.length || 0} color="emerald" />
         <TabButton id="notPresentYet" label="Belum Masuk" icon={UserX} count={data?.notPresentYet?.length || 0} color="red" />
-        <TabButton id="holiday" label="Libur" icon={Coffee} count={data?.onHoliday?.length + data?.onLeaveMandiri?.length || 0} color="amber" />
+        <TabButton id="holiday" label="Libur" icon={Coffee} count={(data?.onHoliday?.length || 0) + (data?.onLeaveMandiri?.length || 0)} color="amber" />
         <TabButton id="overtime" label="Lembur" icon={Clock} count={data?.onOvertime?.length || 0} color="orange" />
-        <TabButton id="leave" label="Cuti" icon={Briefcase} count={data?.onAnnualLeave?.length + data?.onMaternityLeave?.length || 0} color="blue" />
+        <TabButton id="leave" label="Cuti" icon={Briefcase} count={(data?.onAnnualLeave?.length || 0) + (data?.onMaternityLeave?.length || 0)} color="blue" />
         <TabButton id="permission" label="Izin" icon={AlertCircle} count={data?.onPermission?.length || 0} color="purple" />
       </div>
 
@@ -192,12 +192,12 @@ const DailyMonitoring: React.FC = () => {
             {activeTab === 'permission' && 'Daftar Karyawan Izin'}
           </h3>
           <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-bold rounded-full">
-            {activeTab === 'present' && data?.present?.length}
-            {activeTab === 'notPresentYet' && data?.notPresentYet?.length}
-            {activeTab === 'holiday' && (data?.onHoliday?.length + data?.onLeaveMandiri?.length)}
-            {activeTab === 'overtime' && data?.onOvertime?.length}
-            {activeTab === 'leave' && (data?.onAnnualLeave?.length + data?.onMaternityLeave?.length)}
-            {activeTab === 'permission' && data?.onPermission?.length}
+            {activeTab === 'present' && (data?.present?.length || 0)}
+            {activeTab === 'notPresentYet' && (data?.notPresentYet?.length || 0)}
+            {activeTab === 'holiday' && ((data?.onHoliday?.length || 0) + (data?.onLeaveMandiri?.length || 0))}
+            {activeTab === 'overtime' && (data?.onOvertime?.length || 0)}
+            {activeTab === 'leave' && ((data?.onAnnualLeave?.length || 0) + (data?.onMaternityLeave?.length || 0))}
+            {activeTab === 'permission' && (data?.onPermission?.length || 0)}
           </span>
         </div>
 

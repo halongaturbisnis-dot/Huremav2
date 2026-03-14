@@ -5,8 +5,23 @@ import { scheduleService } from './scheduleService';
 
 export const monitoringService = {
   async getDailyMonitoringData(date: Date = new Date()) {
-    const dateStr = date.toISOString().split('T')[0];
-    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ...
+    // Force Jakarta Timezone for calculations
+    const jakartaDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    
+    const jakartaDayFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Jakarta',
+      weekday: 'short'
+    });
+
+    const dateStr = jakartaDateFormatter.format(date);
+    const dayStr = jakartaDayFormatter.format(date);
+    const daysMap: { [key: string]: number } = { 'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3, 'Thu': 4, 'Fri': 5, 'Sat': 6 };
+    const dayOfWeek = daysMap[dayStr];
 
     // 1. Fetch all active accounts
     const accounts = await accountService.getAll();
@@ -14,19 +29,26 @@ export const monitoringService = {
     // 2. Fetch all schedules and their rules
     const schedules = await scheduleService.getAll();
 
-    // 3. Fetch today's attendances
+    // 3. Fetch today's attendances (using Jakarta date range)
+    // We use gte/lte on created_at which is UTC, so we need to be careful.
+    // However, the app usually stores date-only fields or we can query by date string if available.
+    // Given the previous code used created_at with T00:00:00Z, let's stick to a more robust approach:
+    // Querying by the date part if possible, or calculating the UTC range for Jakarta's day.
+    const startOfDay = new Date(`${dateStr}T00:00:00+07:00`).toISOString();
+    const endOfDay = new Date(`${dateStr}T23:59:59+07:00`).toISOString();
+
     const { data: attendances } = await supabase
       .from('attendances')
       .select('*')
-      .gte('created_at', `${dateStr}T00:00:00Z`)
-      .lte('created_at', `${dateStr}T23:59:59Z`);
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay);
 
     // 4. Fetch today's overtimes
     const { data: overtimes } = await supabase
       .from('overtimes')
       .select('*')
-      .gte('created_at', `${dateStr}T00:00:00Z`)
-      .lte('created_at', `${dateStr}T23:59:59Z`);
+      .gte('created_at', startOfDay)
+      .lte('created_at', endOfDay);
 
     // 5. Fetch approved leaves (Cuti Tahunan)
     const { data: annualLeaves } = await supabase
@@ -94,7 +116,16 @@ export const monitoringService = {
       // Check if it's a holiday for this user
       const schedule = scheduleMap.get(acc.schedule_id);
       const rule = schedule?.rules?.find(r => r.day_of_week === dayOfWeek);
-      const isWeekendOrHolidayRule = !rule || rule.is_holiday;
+      
+      // FIX: For Fleksibel/Dinamis, if no rule is found, it's NOT a holiday by default.
+      // It's only a holiday if explicitly marked as is_holiday.
+      let isWeekendOrHolidayRule = false;
+      if (acc.schedule_type === 'Tetap') {
+        isWeekendOrHolidayRule = !rule || rule.is_holiday;
+      } else {
+        // Fleksibel/Dinamis: Only holiday if rule exists and is_holiday is true
+        isWeekendOrHolidayRule = rule?.is_holiday || false;
+      }
       
       const isSpecialHoliday = holidaySchedules.some(hs => 
         hs.location_ids?.includes(acc.location_id) && 
@@ -103,28 +134,33 @@ export const monitoringService = {
 
       const isHoliday = isWeekendOrHolidayRule || isSpecialHoliday;
 
-      // Categorize
+      // PRIORITY HIERARCHY: One user = One primary category
+      // 1. Present (Check-in)
       if (attendance) {
         results.present.push({ ...acc, attendance });
-      }
-
-      if (overtime) {
-        results.onOvertime.push({ ...acc, overtime });
-      }
-
-      if (annualLeave) {
+      } 
+      // 2. On Leave / Permission / Maternity (Approved)
+      else if (annualLeave) {
         results.onAnnualLeave.push({ ...acc, annualLeave });
-      } else if (leaveRequest) {
-        results.onLeaveMandiri.push({ ...acc, leaveRequest });
-      } else if (permission) {
-        results.onPermission.push({ ...acc, permission });
       } else if (maternityLeave) {
         results.onMaternityLeave.push({ ...acc, maternityLeave });
+      } else if (permission) {
+        results.onPermission.push({ ...acc, permission });
+      } 
+      // 3. Holiday (Mandiri / Special / Weekend)
+      else if (leaveRequest) {
+        results.onLeaveMandiri.push({ ...acc, leaveRequest });
       } else if (isHoliday) {
         results.onHoliday.push(acc);
-      } else if (!attendance) {
-        // Only if not present, not on leave, and not holiday
+      } 
+      // 4. Not Present Yet (Must work but no check-in)
+      else {
         results.notPresentYet.push(acc);
+      }
+
+      // Overtime is a secondary status (can be present AND on overtime)
+      if (overtime) {
+        results.onOvertime.push({ ...acc, overtime });
       }
     });
 
