@@ -83,5 +83,21 @@ export const dispensationService = {
       .eq('is_read', false);
     if (error) throw error;
     return count || 0;
+  },
+
+  /**
+   * Mendapatkan pengajuan dispensasi dalam rentang tanggal
+   */
+  async getByRange(accountId: string, startDate: string, endDate: string): Promise<DispensationRequest[]> {
+    const { data, error } = await supabase
+      .from('dispensation_requests')
+      .select('*')
+      .eq('account_id', accountId)
+      .neq('status', 'REJECTED')
+      .gte('date', startDate)
+      .lte('date', endDate);
+    
+    if (error) throw error;
+    return data || [];
   }
 };

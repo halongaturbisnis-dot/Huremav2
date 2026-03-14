@@ -314,5 +314,36 @@ export const leaveService = {
       .eq('id', id);
     
     if (error) throw error;
+  },
+
+  /**
+   * Mendapatkan pengajuan cuti tahunan dalam rentang tanggal
+   */
+  async getAnnualByRange(accountId: string, startDate: string, endDate: string): Promise<AnnualLeaveRequest[]> {
+    const { data, error } = await supabase
+      .from('account_annual_leaves')
+      .select('*')
+      .eq('account_id', accountId)
+      .neq('status', 'rejected')
+      .neq('status', 'cancelled')
+      .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Mendapatkan pengajuan libur mandiri dalam rentang tanggal
+   */
+  async getMandatoryByRange(accountId: string, startDate: string, endDate: string): Promise<LeaveRequest[]> {
+    const { data, error } = await supabase
+      .from('account_leave_requests')
+      .select('*')
+      .eq('account_id', accountId)
+      .neq('status', 'rejected')
+      .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+    
+    if (error) throw error;
+    return data || [];
   }
 };

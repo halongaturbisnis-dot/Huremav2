@@ -6,7 +6,11 @@ import { settingsService } from '../../services/settingsService';
 import { scheduleService } from '../../services/scheduleService';
 import { googleDriveService } from '../../services/googleDriveService';
 import { authService } from '../../services/authService';
-import { DispensationRequest, DispensationIssueType, DispensationIssue, Attendance, ScheduleRule } from '../../types';
+import { leaveService } from '../../services/leaveService';
+import { permissionService } from '../../services/permissionService';
+import { maternityLeaveService } from '../../services/maternityLeaveService';
+import { accountService } from '../../services/accountService';
+import { DispensationRequest, DispensationIssueType, DispensationIssue, Attendance, ScheduleRule, Account, Schedule } from '../../types';
 import Swal from 'sweetalert2';
 
 interface DispensationFormProps {
@@ -53,23 +57,45 @@ const DispensationForm: React.FC<DispensationFormProps> = ({ onClose, onSuccess,
   const detectProblems = async () => {
     try {
       setIsDetecting(true);
+      
+      // Fetch full account details to get location_id and schedule_id
+      const fullAccount = await accountService.getById(user!.id);
+      if (!fullAccount) throw new Error("Data akun tidak ditemukan");
+
       const settings = await settingsService.getAll();
       const windowDays = settings.find(s => s.key === 'dispensation_window_days')?.value || 7;
       
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - (windowDays - 1));
+      // Gunakan waktu lokal Jakarta (WIB)
+      const now = new Date();
+      const startDate = new Date(now);
+      startDate.setDate(now.getDate() - (windowDays - 1));
+      
       const startDateStr = startDate.toISOString().split('T')[0];
-      const endDateStr = new Date().toISOString().split('T')[0];
+      const endDateStr = now.toISOString().split('T')[0];
 
-      // Fetch attendance
-      const attendance = await presenceService.getRecentHistory(user!.id, 60); // Get last 60 days to be safe
-      const filteredAttendance = attendance.filter(a => {
-        const aDate = a.created_at?.split('T')[0];
-        return aDate && aDate >= startDateStr && aDate <= endDateStr;
-      });
+      // Fetch all relevant data for the window in parallel
+      const [
+        attendance,
+        annualLeaves,
+        mandatoryLeaves,
+        permissions,
+        maternityLeaves,
+        existingRequests,
+        specialHolidays
+      ] = await Promise.all([
+        presenceService.getAttendanceByRange(startDateStr, endDateStr, user!.id),
+        leaveService.getAnnualByRange(user!.id, startDateStr, endDateStr),
+        leaveService.getMandatoryByRange(user!.id, startDateStr, endDateStr),
+        permissionService.getByRange(user!.id, startDateStr, endDateStr),
+        maternityLeaveService.getByRange(user!.id, startDateStr, endDateStr),
+        dispensationService.getByRange(user!.id, startDateStr, endDateStr),
+        scheduleService.getSpecialHolidaysByRange(fullAccount.location_id, startDateStr, endDateStr)
+      ]);
+
+      const filteredAttendance = attendance; // Already filtered by range
 
       // Fetch schedule rules
-      const scheduleId = (user as any).schedule_id;
+      const scheduleId = fullAccount.schedule_id;
       let rules: ScheduleRule[] = [];
       if (scheduleId) {
         const schedule = await scheduleService.getById(scheduleId);
@@ -79,13 +105,39 @@ const DispensationForm: React.FC<DispensationFormProps> = ({ onClose, onSuccess,
       // Detect issues for each day in window
       const detected: AttendanceProblem[] = [];
       for (let i = 0; i < windowDays; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
+        const d = new Date(now);
+        d.setDate(now.getDate() - i);
         const dStr = d.toISOString().split('T')[0];
+        
+        // Skip if it's today (cannot request dispensation for today yet)
+        if (dStr === now.toISOString().split('T')[0]) continue;
+
+        // Check if this date is a Special Holiday (Type 3)
+        const isSpecialHoliday = specialHolidays.some(h => {
+          if (!h.start_date || !h.end_date) return false;
+          const isDateInRange = dStr >= h.start_date && dStr <= h.end_date;
+          const isUserExcluded = h.excluded_account_ids?.includes(user!.id);
+          return isDateInRange && !isUserExcluded;
+        });
+
+        if (isSpecialHoliday) continue;
+
         const dayOfWeek = d.getDay(); // 0 (Sun) to 6 (Sat)
         
         const rule = rules.find(r => r.day_of_week === dayOfWeek);
         if (!rule || rule.is_holiday) continue; // Skip holidays or no rule
+
+        // Check if there is already an approved or pending leave/permission/maternity leave for this date
+        const hasAnnual = annualLeaves.some(l => dStr >= l.start_date && dStr <= l.end_date);
+        const hasMandatory = mandatoryLeaves.some(l => dStr >= l.start_date && dStr <= l.end_date);
+        const hasPermission = permissions.some(p => dStr >= p.start_date && dStr <= p.end_date);
+        const hasMaternity = maternityLeaves.some(m => dStr >= m.start_date && dStr <= m.end_date);
+        
+        if (hasAnnual || hasMandatory || hasPermission || hasMaternity) continue;
+
+        // Check if there is already a pending or approved dispensation request for this date
+        const hasExistingRequest = existingRequests.some(r => r.date === dStr);
+        if (hasExistingRequest) continue;
 
         const dailyPresence = filteredAttendance.find(a => a.created_at?.split('T')[0] === dStr);
         

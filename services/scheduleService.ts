@@ -154,5 +154,21 @@ export const scheduleService = {
     const { error } = await supabase.from('schedules').delete().eq('id', id);
     if (error) throw error;
     return true;
+  },
+
+  /**
+   * Mendapatkan Libur Khusus (Tipe 3) dalam rentang tanggal untuk lokasi tertentu
+   */
+  async getSpecialHolidaysByRange(locationId: string, startDate: string, endDate: string) {
+    const { data, error } = await supabase
+      .from('schedules')
+      .select('*, schedule_locations!inner(location_id)')
+      .eq('type', 3) // Libur Khusus
+      .eq('schedule_locations.location_id', locationId)
+      .lte('start_date', endDate)
+      .gte('end_date', startDate);
+
+    if (error) throw error;
+    return data as Schedule[];
   }
 };

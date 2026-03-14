@@ -188,5 +188,21 @@ export const maternityLeaveService = {
       .eq('id', id);
     
     if (error) throw error;
+  },
+
+  /**
+   * Mendapatkan pengajuan cuti melahirkan dalam rentang tanggal
+   */
+  async getByRange(accountId: string, startDate: string, endDate: string): Promise<MaternityLeaveRequest[]> {
+    const { data, error } = await supabase
+      .from('account_maternity_leaves')
+      .select('*')
+      .eq('account_id', accountId)
+      .neq('status', 'rejected')
+      .neq('status', 'cancelled')
+      .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+    
+    if (error) throw error;
+    return data || [];
   }
 };

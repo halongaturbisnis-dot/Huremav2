@@ -190,5 +190,21 @@ export const permissionService = {
       .eq('id', id);
     
     if (error) throw error;
+  },
+
+  /**
+   * Mendapatkan pengajuan izin dalam rentang tanggal
+   */
+  async getByRange(accountId: string, startDate: string, endDate: string): Promise<PermissionRequest[]> {
+    const { data, error } = await supabase
+      .from('account_permission_requests')
+      .select('*')
+      .eq('account_id', accountId)
+      .neq('status', 'rejected')
+      .neq('status', 'cancelled')
+      .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+    
+    if (error) throw error;
+    return data || [];
   }
 };
